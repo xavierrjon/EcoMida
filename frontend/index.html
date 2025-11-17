@@ -1,0 +1,179 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>EcoMida - Gerenciador de Alimentos</title>
+    
+    <meta name="theme-color" content="#4CAF50">
+    <meta name="description" content="Gerencie a validade dos seus alimentos e receba dicas de armazenamento">
+    
+    <link rel="manifest" href="manifest.json">
+    
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="default">
+    <meta name="apple-mobile-web-app-title" content="EcoMida">
+    <link rel="apple-touch-icon" href="images/icon-192.png">
+    
+    <link rel="stylesheet" href="style.css">
+    
+    <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
+</head>
+<body>
+
+    <div class="app-container">
+        <header class="app-header">
+            <h1 class="app-title">EcoMida</h1>
+            <div class="header-actions">
+                <button id="notifications-btn" class="icon-btn">
+                    <span class="material-icons">notifications</span>
+                    <span id="notification-badge" class="badge hidden">0</span>
+                </button>
+                <button id="profile-btn" class="icon-btn">
+                    <span class="material-icons">account_circle</span>
+                </button>
+            </div>
+        </header>
+
+        <main class="main-content">
+
+            <section id="login-screen" class="screen active">
+                <div class="auth-container">
+                    <h2>Bem-vindo ao EcoMida</h2>
+                    <form id="login-form" class="auth-form">
+                        <div class="input-group">
+                            <label for="login-email">Email</label>
+                            <input type="email" id="login-email" required>
+                        </div>
+                        <div class="input-group">
+                            <label for="login-password">Senha</label>
+                            <input type="password" id="login-password" required>
+                        </div>
+                        <button type="submit" class="btn-primary">Entrar</button>
+                    </form>
+                    <button id="show-register" class="btn-link">Criar nova conta</button>
+                </div>
+            </section>
+
+            <section id="register-screen" class="screen">
+                <div class="auth-container">
+                    <h2>Criar Conta</h2>
+                    <form id="register-form" class="auth-form">
+                        <div class="input-group">
+                            <label for="register-username">Nome de usuário</label>
+                            <input type="text" id="register-username" required>
+                        </div>
+                        <div class="input-group">
+                            <label for="register-email">Email</label>
+                            <input type="email" id="register-email" required>
+                        </div>
+                        <div class="input-group">
+                            <label for="register-password">Senha</label>
+                            <input type="password" id="register-password" required>
+                        </div>
+                        <div class="form-actions">
+                            <button type="button" id="cancel-register" class="btn-secondary">Cancelar</button>
+                            <button type="submit" class="btn-primary">Criar Conta</button>
+                        </div>
+                    </form>
+                </div>
+            </section>
+
+            <section id="main-screen" class="screen">
+                <div class="screen-header">
+                    <h2>Meus Alimentos</h2>
+                    <button id="add-food-btn" class="btn-primary">
+                        <span class="material-icons">add</span>
+                        Adicionar
+                    </button>
+                </div>
+                
+                <div id="foods-list" class="foods-list">
+               
+                    <div class="empty-state">
+                        <span class="material-icons">kitchen</span>
+                        <p>Nenhum alimento cadastrado</p>
+                        <button id="add-first-food" class="btn-primary">Cadastrar primeiro alimento</button>
+                    </div>
+                </div>
+            </section>
+
+            <section id="add-food-screen" class="screen">
+                <div class="screen-header">
+                    <h2>Cadastrar Alimento</h2>
+                </div>
+                <form id="add-food-form" class="form-container">
+                    <div class="input-group">
+                        <label for="food-name">Nome do alimento</label>
+                        <input type="text" id="food-name" required>
+                    </div>
+                    <div class="input-group">
+                        <label for="food-expiry">Data de validade</label>
+                        <input type="date" id="food-expiry" required>
+                    </div>
+                    <div class="input-group">
+                        <label for="food-quantity">Quantidade</label>
+                        <input type="number" id="food-quantity" value="1" min="1">
+                    </div>
+                    <div class="input-group">
+                        <label for="food-type">Tipo/Categoria</label>
+                        <select id="food-type">
+                            <option value="laticinios">Laticínios</option>
+                            <option value="frutas">Frutas</option>
+                            <option value="verduras">Verduras</option>
+                            <option value="carnes">Carnes</option>
+                            <option value="graos">Grãos</option>
+                            <option value="bebidas">Bebidas</option>
+                            <option value="outros">Outros</option>
+                        </select>
+                    </div>
+                    <div class="form-actions">
+                        <button type="button" id="cancel-add-food" class="btn-secondary">Cancelar</button>
+                        <button type="submit" class="btn-primary">Salvar</button>
+                    </div>
+                </form>
+            </section>
+
+            <section id="tips-screen" class="screen">
+                <div class="screen-header">
+                    <h2>Dicas de Armazenamento</h2>
+                </div>
+                <div class="tips-categories">
+                    <button class="category-btn active" data-category="all">Todas</button>
+                    <button class="category-btn" data-category="laticinios">Laticínios</button>
+                    <button class="category-btn" data-category="frutas">Frutas</button>
+                    <button class="category-btn" data-category="carnes">Carnes</button>
+                    <button class="category-btn" data-category="graos">Grãos</button>
+                </div>
+                <div id="tips-list" class="tips-list">
+                
+                    <div class="empty-state">
+                        <span class="material-icons">tips_and_updates</span>
+                        <p>Carregando dicas...</p>
+                    </div>
+                </div>
+            </section>
+        </main>
+
+        <nav class="bottom-nav">
+            <button class="nav-btn active" data-screen="main-screen">
+                <span class="material-icons">kitchen</span>
+                <span>Alimentos</span>
+            </button>
+            <button class="nav-btn" data-screen="tips-screen">
+                <span class="material-icons">tips_and_updates</span>
+                <span>Dicas</span>
+            </button>
+        </nav>
+    </div>
+
+    <div id="loading" class="loading hidden">
+        <div class="spinner"></div>
+    </div>
+
+    <script>
+    
+        console.log('EcoMida PWA carregado');
+    </script>
+</body>
+</html>
