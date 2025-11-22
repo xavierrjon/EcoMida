@@ -5,7 +5,7 @@
     --secondary-color: #2196F3;
     --danger-color: #f44336;
     --warning-color: #FF9800;
-    --text-primary: #212121;
+    --text-primary: #212423;
     --text-secondary: #757575;
     --background: #f5f5f5;
     --surface: #ffffff;
@@ -45,6 +45,18 @@ body {
     position: sticky;
     top: 0;
     z-index: 100;
+}
+
+.header-logo {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.logo-img {
+    width: 32px;
+    height: 32px;
+    border-radius: 6px;
 }
 
 .app-title {
@@ -107,17 +119,33 @@ body {
 
 .auth-container {
     max-width: 400px;
-    margin: 2rem auto;
-    padding: 2rem;
-    background: var(--surface);
-    border-radius: 12px;
-    box-shadow: var(--shadow);
+    margin: 0 auto;
+    padding: 2rem 1rem;
 }
 
-.auth-container h2 {
+.logo-section {
     text-align: center;
     margin-bottom: 2rem;
-    color: var(--text-primary);
+}
+
+.auth-logo {
+    width: 80px;
+    height: 80px;
+    margin: 0 auto 1rem;
+    border-radius: 12px;
+    display: block;
+}
+
+.logo-section h2 {
+    font-size: 1.75rem;
+    font-weight: 700;
+    color: var(--primary-color);
+    margin-bottom: 0.5rem;
+}
+
+.app-tagline {
+    color: var(--text-secondary);
+    font-size: 0.9rem;
 }
 
 .auth-form {
@@ -135,6 +163,7 @@ body {
 .input-group label {
     font-weight: 500;
     color: var(--text-primary);
+    font-size: 0.9rem;
 }
 
 .input-group input,
@@ -144,6 +173,7 @@ body {
     border-radius: 8px;
     font-size: 1rem;
     transition: border-color 0.2s;
+    background: var(--surface);
 }
 
 .input-group input:focus,
@@ -194,6 +224,12 @@ body {
     cursor: pointer;
     text-decoration: underline;
     margin-top: 1rem;
+    text-align: center;
+    width: 100%;
+}
+
+.btn-full {
+    width: 100%;
 }
 
 .screen-header {
@@ -205,6 +241,7 @@ body {
 
 .screen-header h2 {
     color: var(--text-primary);
+    font-size: 1.5rem;
 }
 
 .foods-list {
@@ -247,6 +284,15 @@ body {
 .food-expiry.expired {
     color: var(--danger-color);
     font-weight: 500;
+}
+
+.food-meta {
+    margin-top: 0.25rem;
+}
+
+.food-meta small {
+    color: var(--text-secondary);
+    font-size: 0.8rem;
 }
 
 .food-actions {
@@ -316,6 +362,7 @@ body {
     cursor: pointer;
     white-space: nowrap;
     transition: all 0.2s;
+    font-size: 0.9rem;
 }
 
 .category-btn.active {
@@ -349,6 +396,7 @@ body {
     font-size: 1.1rem;
     font-weight: 500;
     color: var(--text-primary);
+    flex: 1;
 }
 
 .tip-category {
@@ -358,6 +406,7 @@ body {
     border-radius: 12px;
     font-size: 0.8rem;
     font-weight: 500;
+    margin-left: 1rem;
 }
 
 .tip-content {
@@ -437,10 +486,21 @@ body {
     100% { transform: rotate(360deg); }
 }
 
+.status-expired {
+    border-left: 4px solid var(--danger-color);
+}
+
+.status-expiring {
+    border-left: 4px solid var(--warning-color);
+}
+
+.status-ok {
+    border-left: 4px solid var(--primary-color);
+}
+
 @media (max-width: 480px) {
     .auth-container {
-        margin: 1rem;
-        padding: 1.5rem;
+        padding: 1.5rem 1rem;
     }
     
     .screen-header {
@@ -452,16 +512,98 @@ body {
     .form-actions {
         flex-direction: column;
     }
+    
+    .auth-logo {
+        width: 70px;
+        height: 70px;
+    }
+    
+    .logo-section h2 {
+        font-size: 1.5rem;
+    }
 }
 
-.status-expired {
-    border-left: 4px solid var(--danger-color);
+.app-header:not(.logged-in),
+.bottom-nav:not(.logged-in) {
+    display: none !important;
 }
 
-.status-expiring {
-    border-left: 4px solid var(--warning-color);
+
+#login-screen.active ~ .app-header,
+#register-screen.active ~ .app-header,
+#login-screen.active ~ .bottom-nav,
+#register-screen.active ~ .bottom-nav {
+    display: none !important;
 }
 
-.status-ok {
-    border-left: 4px solid var(--primary-color);
+.auth-logo {
+    width: 120px !important;   
+    height: 120px !important;  
+    margin: 0 auto 1.5rem !important;
+    border-radius: 20px !important;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15) !important;
+}
+
+.header-logo .logo-img {
+    width: 48px !important;   
+    height: 48px !important;   
+    border-radius: 10px !important;
+}
+
+.app-title {
+    font-size: 1.5rem !important; 
+    font-weight: 700 !important;
+}
+
+.app-tagline {
+    font-size: 1.1rem !important; 
+    margin-bottom: 2rem !important;
+}
+
+.logo-section h2 {
+    font-size: 2rem !important;  
+    font-weight: 800 !important;
+    margin-bottom: 0.75rem !important;
+}
+
+.auth-logo {
+    transition: transform 0.3s ease, box-shadow 0.3s ease !important;
+}
+
+.auth-logo:hover {
+    transform: scale(1.05) !important;
+    box-shadow: 0 6px 20px rgba(21, 21, 21, 0.2) !important;
+}
+
+.app-header {
+    padding: 1.2rem 1rem !important; 
+    background: linear-gradient(135deg, var(--primary-color), var(--primary-dark)) !important;
+}
+
+.auth-container {
+    padding: 3rem 1rem !important; 
+}
+
+.logo-section {
+    margin-bottom: 3rem !important; 
+}
+
+@media (max-width: 480px) {
+    .auth-logo {
+        width: 100px !important;
+        height: 100px !important;
+    }
+    
+    .header-logo .logo-img {
+        width: 40px !important;
+        height: 40px !important;
+    }
+    
+    .logo-section h2 {
+        font-size: 1.75rem !important;
+    }
+    
+    .app-tagline {
+        font-size: 1rem !important;
+    }
 }
