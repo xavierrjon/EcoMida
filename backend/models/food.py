@@ -5,9 +5,10 @@ class Food(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     name = db.Column(db.String(100), nullable=False)
     expiry_date = db.Column(db.Date, nullable=False)
-    quantity = db.Column(db.Integer, default=1)
+    quantity = db.Column(db.Float, default=1.0)  # ✅ Mudou para Float
+    unit = db.Column(db.String(20), default='unidades')  # ✅ Nova coluna
     food_type = db.Column(db.String(50), default='outros')
-    status = db.Column(db.String(20), default='active')  # active, consumed, discarded
+    status = db.Column(db.String(20), default='active')
     user_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
     updated_at = db.Column(db.DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
@@ -28,6 +29,7 @@ class Food(db.Model):
             "name": self.name,
             "expiry_date": self.expiry_date.isoformat(),
             "quantity": self.quantity,
+            "unit": self.unit,  
             "food_type": self.food_type,
             "user_id": self.user_id,
             "status": self.status,

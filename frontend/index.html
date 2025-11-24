@@ -85,18 +85,20 @@
 
             <section id="main-screen" class="screen">
                 <div class="screen-header">
-                    <h2>Meus Alimentos</h2>
-                    <button id="add-food-btn" class="btn-primary">
-                        <span class="material-icons">add</span>
-                        Adicionar
-                    </button>
+                    <h2>Meus Produtos</h2>
+                </div>
+                
+                <div class="food-tabs">
+                    <button class="tab-btn active" data-tab="active">Ativos</button>
+                    <button class="tab-btn" data-tab="consumed">Consumidos</button>
+                    <button class="tab-btn" data-tab="discarded">Descartados</button>
                 </div>
                 
                 <div id="foods-list" class="foods-list">
                     <div class="empty-state">
                         <span class="material-icons">kitchen</span>
-                        <p>Nenhum alimento cadastrado</p>
-                        <button id="add-first-food" class="btn-primary">Cadastrar primeiro alimento</button>
+                        <p>Nenhum produto cadastrado</p>
+                        <p class="empty-state-hint">Clique em "+" para adicionar seu primeiro produto!</p>
                     </div>
                 </div>
             </section>
@@ -110,14 +112,33 @@
                         <label for="food-name">Nome do alimento</label>
                         <input type="text" id="food-name" required>
                     </div>
+                    
+                    <div class="input-row">
+                        <div class="input-group">
+                            <label for="food-quantity">Quantidade</label>
+                            <input type="number" id="food-quantity" value="1" min="0.1" step="0.1">
+                        </div>
+                        <div class="input-group">
+                            <label for="food-unit">Unidade</label>
+                            <select id="food-unit">
+                                <option value="unidades">Unidades</option>
+                                <option value="kg">Quilogramas (kg)</option>
+                                <option value="g">Gramas (g)</option>
+                                <option value="litros">Litros (L)</option>
+                                <option value="ml">Mililitros (ml)</option>
+                                <option value="pacotes">Pacotes</option>
+                                <option value="caixas">Caixas</option>
+                                <option value="potes">Potes</option>
+                                <option value="outro">Outro</option>
+                            </select>
+                        </div>
+                    </div>
+                    
                     <div class="input-group">
                         <label for="food-expiry">Data de validade</label>
                         <input type="date" id="food-expiry" required>
                     </div>
-                    <div class="input-group">
-                        <label for="food-quantity">Quantidade</label>
-                        <input type="number" id="food-quantity" value="1" min="1">
-                    </div>
+                    
                     <div class="input-group">
                         <label for="food-type">Tipo/Categoria</label>
                         <select id="food-type">
@@ -130,6 +151,7 @@
                             <option value="outros">Outros</option>
                         </select>
                     </div>
+                    
                     <div class="form-actions">
                         <button type="button" id="cancel-add-food" class="btn-secondary">Cancelar</button>
                         <button type="submit" class="btn-primary">Salvar</button>
@@ -155,12 +177,36 @@
                     </div>
                 </div>
             </section>
+
+            <section id="history-screen" class="screen">
+                <div class="screen-header">
+                    <h2>Histórico de Alimentos</h2>
+                </div>
+                
+                <div class="history-filters">
+                    <button class="filter-btn active" data-filter="all">Todos</button>
+                    <button class="filter-btn" data-filter="consumed">Consumidos</button>
+                    <button class="filter-btn" data-filter="discarded">Descartados</button>
+                    <button class="filter-btn" data-filter="deleted">Excluídos</button>
+                </div>
+                
+                <div id="history-list" class="history-list">
+                    <div class="empty-state">
+                        <span class="material-icons">history</span>
+                        <p>Nenhum registro no histórico</p>
+                    </div>
+                </div>
+            </section>
+
+            <button class="fab-button" id="fab-add-food">
+                <span class="material-icons">add</span>
+            </button>
         </main>
 
         <nav class="bottom-nav">
             <button class="nav-btn active" data-screen="main-screen">
                 <span class="material-icons">kitchen</span>
-                <span>Alimentos</span>
+                <span>Produtos</span>
             </button>
             <button class="nav-btn" data-screen="tips-screen">
                 <span class="material-icons">tips_and_updates</span>
@@ -174,6 +220,7 @@
     </div>
 
     <script src="auth.js"></script>
+    <script src="foods.js"></script>
     <script src="app.js"></script>
 
     <script>

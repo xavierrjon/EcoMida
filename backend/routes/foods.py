@@ -19,7 +19,8 @@ def create_food():
         
         name = data.get('name')
         expiry_date_str = data.get('expiry_date')
-        quantity = data.get('quantity', 1)
+        quantity = data.get('quantity', 1.0) 
+        unit = data.get('unit', 'unidades')   
         food_type = data.get('food_type', 'outros')
         
         if not name or not expiry_date_str:
@@ -30,16 +31,15 @@ def create_food():
         except ValueError:
             return jsonify({"error": "Formato de data inválido. Use YYYY-MM-DD"}), 400
         
-        # Buscar usuário
         user = User.query.filter_by(email=current_user_email).first()
         if not user:
             return jsonify({"error": "Usuário não encontrado"}), 404
         
-        # Criar alimento
         new_food = Food(
             name=name,
             expiry_date=expiry_date,
             quantity=quantity,
+            unit=unit,  
             food_type=food_type,
             user_id=user.id
         )
@@ -47,13 +47,16 @@ def create_food():
         db.session.add(new_food)
         db.session.commit()
         
-        # Registrar no histórico
         history_entry = History(
             user_id=user.id,
             food_id=new_food.id,
             action="created",
             food_name=name,
-            details={"quantity": quantity, "expiry_date": expiry_date_str}
+            details={
+                "quantity": quantity,
+                "unit": unit,  
+                "expiry_date": expiry_date_str
+            }
         )
         
         db.session.add(history_entry)
@@ -78,7 +81,6 @@ def get_foods():
         if not user:
             return jsonify({"error": "Usuário não encontrado"}), 404
         
-        # Buscar alimentos do usuário
         foods = Food.query.filter_by(user_id=user.id).all()
         
         return jsonify({
@@ -99,12 +101,10 @@ def update_food(food_id):
         if not user:
             return jsonify({"error": "Usuário não encontrado"}), 404
         
-        # Verificar se o alimento pertence ao usuário
         food = Food.query.filter_by(id=food_id, user_id=user.id).first()
         if not food:
             return jsonify({"error": "Alimento não encontrado"}), 404
         
-        # Atualizar alimento
         if 'name' in data:
             food.name = data['name']
         if 'expiry_date' in data:
@@ -118,7 +118,6 @@ def update_food(food_id):
         
         db.session.commit()
         
-        # Registrar no histórico
         history_entry = History(
             user_id=user.id,
             food_id=food.id,
@@ -154,18 +153,15 @@ def update_food_status(food_id, status):
         if not user:
             return jsonify({"error": "Usuário não encontrado"}), 404
         
-        # Verificar se o alimento pertence ao usuário
         food = Food.query.filter_by(id=food_id, user_id=user.id).first()
         if not food:
             return jsonify({"error": "Alimento não encontrado"}), 404
         
-        # Atualizar status
         food.status = status
         food.updated_at = datetime.utcnow()
         
         db.session.commit()
         
-        # Registrar no histórico
         action = "consumed" if status == "consumed" else "discarded"
         history_entry = History(
             user_id=user.id,
@@ -194,12 +190,10 @@ def delete_food(food_id):
         if not user:
             return jsonify({"error": "Usuário não encontrado"}), 404
         
-        # Verificar se o alimento pertence ao usuário
         food = Food.query.filter_by(id=food_id, user_id=user.id).first()
         if not food:
             return jsonify({"error": "Alimento não encontrado"}), 404
         
-        # Registrar no histórico antes de deletar
         history_entry = History(
             user_id=user.id,
             food_id=food.id,
@@ -212,6 +206,42 @@ def delete_food(food_id):
         db.session.commit()
         
         return jsonify({"message": "Alimento deletado com sucesso"}), 200
+        
+    except Exception as e:
+        db.session.rollback()
+        return jsonify({"error": f"Erro interno: {str(e)}"}), 500
+    
+@foods_bp.route('/foods/<int:food_id>/reactivate', methods=['POST'])
+@jwt_required()
+def reactivate_food(food_id):
+    try:
+        current_user_email = get_jwt_identity()
+        
+        user = User.query.filter_by(email=current_user_email).first()
+        if not user:
+            return jsonify({"error": "Usuário não encontrado"}), 404
+        
+        food = Food.query.filter_by(id=food_id, user_id=user.id).first()
+        if not food:
+            return jsonify({"error": "Alimento não encontrado"}), 404
+        
+       
+        food.status = 'active'
+        food.updated_at = datetime.utcnow()
+        
+        db.session.commit()
+        
+        history_entry = History(
+            user_id=user.id,
+            food_id=food.id,
+            action="reactivated",
+            food_name=food.name
+        )
+        
+        db.session.add(history_entry)
+        db.session.commit()
+        
+        return jsonify({"message": "Alimento reativado com sucesso"}), 200
         
     except Exception as e:
         db.session.rollback()

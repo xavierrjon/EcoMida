@@ -32,6 +32,106 @@ class EcoMidaApp {
         this.showScreen('login-screen');
     }
 
+    renderFoods(foods) {
+        const foodsList = document.getElementById('foods-list');
+        const activeTab = document.querySelector('.tab-btn.active')?.getAttribute('data-tab') || 'active';
+        
+        if (!foods || foods.length === 0) {
+            this.showEmptyState();
+            return;
+        }
+
+        // Filtrar alimentos
+        let filteredFoods = foods.filter(food => {
+            if (activeTab === 'consumed') return food.status === 'consumed';
+            if (activeTab === 'discarded') return food.status === 'discarded';
+            return food.status === 'active';
+        });
+
+        if (filteredFoods.length === 0) {
+            this.showTabEmptyState(activeTab);
+            return;
+        }
+
+        // Ordenar
+        if (activeTab === 'active') {
+            filteredFoods.sort((a, b) => new Date(a.expiry_date) - new Date(b.expiry_date));
+        } else {
+            filteredFoods.sort((a, b) => new Date(b.updated_at) - new Date(a.updated_at));
+        }
+
+        foodsList.innerHTML = filteredFoods.map(food => {
+            const expiryStatus = activeTab === 'active' ? this.getExpiryStatus(food.expiry_date) : '';
+            const statusBadge = activeTab !== 'active' ? `
+                <span class="status-badge ${food.status}">
+                    <span class="material-icons" style="font-size: 16px;">
+                        ${food.status === 'consumed' ? 'check_circle' : 'delete_outline'}
+                    </span>
+                    ${food.status === 'consumed' ? 'Consumido' : 'Descartado'}
+                </span>
+            ` : '';
+
+            return `
+            <div class="food-card">
+                <!-- CABEÇALHO -->
+                <div class="food-header">
+                    <div class="food-title-section">
+                        <div class="food-title">${this.escapeHtml(food.name)}</div>
+                        <div class="food-category">${this.getCategoryLabel(food.food_type)}</div>
+                    </div>
+                    ${statusBadge}
+                </div>
+                
+                <!-- INFORMAÇÕES EM GRID -->
+                <div class="food-info-grid">
+                    <div class="info-item">
+                        <span class="info-label">Quantidade</span>
+                        <span class="info-value">${this.formatQuantityDisplay(food.quantity, food.unit)}</span>
+                    </div>
+                    <div class="info-item expiry-status ${expiryStatus}">
+                        <span class="info-label">Validade</span>
+                        <span class="info-value">
+                            ${activeTab === 'active' 
+                                ? this.formatExpiryDate(food.expiry_date, food.days_until_expiry)
+                                : new Date(food.expiry_date).toLocaleDateString('pt-BR')
+                            }
+                        </span>
+                    </div>
+                </div>
+                
+                <!-- AÇÕES ORGANIZADAS -->
+                <div class="food-actions">
+                    ${activeTab === 'active' ? `
+                        <button class="action-btn btn-consumed consume-food" data-food-id="${food.id}">
+                            <span class="material-icons" style="font-size: 18px;">check</span>
+                            <span>Consumido</span>
+                        </button>
+                        <button class="action-btn btn-discarded discard-food" data-food-id="${food.id}">
+                            <span class="material-icons" style="font-size: 18px;">close</span>
+                            <span>Descartado</span>
+                        </button>
+                    ` : `
+                        <button class="action-btn btn-reactivate reactivate-food" data-food-id="${food.id}">
+                            <span class="material-icons" style="font-size: 18px;">refresh</span>
+                            <span>Reativar</span>
+                        </button>
+                        <div style="grid-column: 2 / span 2;"></div>
+                    `}
+                    
+                    <button class="icon-btn edit-food" data-food-id="${food.id}" title="Editar">
+                        <span class="material-icons" style="font-size: 18px;">edit</span>
+                    </button>
+                    <button class="icon-btn btn-delete delete-food" data-food-id="${food.id}" title="Excluir">
+                        <span class="material-icons" style="font-size: 18px;">delete</span>
+                    </button>
+                </div>
+            </div>
+            `;
+        }).join('');
+
+        this.attachFoodEvents();
+    }
+
     setupEventListeners() {
         document.addEventListener('click', (e) => {
             if (e.target.id === 'show-register') {
@@ -48,6 +148,12 @@ class EcoMidaApp {
                 return;
             }
 
+            if (e.target.classList.contains('tab-btn')) {
+                const tabBtn = e.target.closest('.tab-btn');
+                this.switchFoodTab(tabBtn);
+                return;
+            }
+
             if (e.target.closest('.nav-btn')) {
                 const btn = e.target.closest('.nav-btn');
                 const screen = btn.getAttribute('data-screen');
@@ -55,8 +161,9 @@ class EcoMidaApp {
                 this.updateActiveNav(btn);
             }
 
-            if (e.target.id === 'add-food-btn' || e.target.id === 'add-first-food') {
+            if (e.target.id === 'fab-add-food' || e.target.closest('#fab-add-food')) {
                 this.showScreen('add-food-screen');
+                return;
             }
 
             if (e.target.id === 'cancel-add-food') {
@@ -82,6 +189,18 @@ class EcoMidaApp {
 
         if (addFoodForm) {
             addFoodForm.addEventListener('submit', (e) => this.handleAddFood(e));
+        }
+    }
+
+    switchFoodTab(activeTabBtn) {
+        document.querySelectorAll('.tab-btn').forEach(btn => {
+            btn.classList.remove('active');
+        });
+
+        activeTabBtn.classList.add('active');
+
+        if (window.foodsManager) {
+            window.foodsManager.loadFoods();
         }
     }
 
@@ -113,12 +232,20 @@ class EcoMidaApp {
     }
 
     onScreenShow(screenId) {
+        const fab = document.getElementById('fab-add-food');
+        if (screenId === 'main-screen' && this.currentUser) {
+            if (fab) fab.style.display = 'flex';
+        } else {
+            if (fab) fab.style.display = 'none';
+        }
+
         switch(screenId) {
             case 'main-screen':
-                this.loadFoods();
+                if (window.foodsManager) {
+                    window.foodsManager.loadFoods();
+                }
                 break;
             case 'tips-screen':
-                this.loadTips();
                 break;
             case 'login-screen':
                 this.updateHeaderVisibility(false);
@@ -217,50 +344,74 @@ class EcoMidaApp {
     }
 
     async handleAddFood(e) {
-    e.preventDefault();
-    
-    const name = document.getElementById('food-name').value;
-    const expiry_date = document.getElementById('food-expiry').value;
-    const quantity = document.getElementById('food-quantity').value;
-    const food_type = document.getElementById('food-type').value;
-
-    this.showLoading(true);
-
-    try {
-        const token = this.auth ? this.auth.getToken() : null;
+        e.preventDefault();
         
-        if (!token) {
-            this.showNotification('Você precisa estar logado', 'error');
+        const name = document.getElementById('food-name').value;
+        const expiry_date = document.getElementById('food-expiry').value;
+        const quantity = document.getElementById('food-quantity').value;
+        const unit = document.getElementById('food-unit').value;
+        const food_type = document.getElementById('food-type').value;
+
+        if (!name || !expiry_date) {
+            this.showNotification('Nome e data de validade são obrigatórios', 'error');
             return;
         }
 
-        const response = await fetch(`${window.location.origin}/api/foods`, {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-                'Authorization': `Bearer ${token}`,
-                'ngrok-skip-browser-warning': 'true'
-            },
-            body: JSON.stringify({ name, expiry_date, quantity, food_type })
-        });
-
-        const data = await response.json();
-
-        if (response.ok) {
-            this.showNotification('Alimento cadastrado com sucesso!', 'success');
-            this.showScreen('main-screen');
-            document.getElementById('add-food-form').reset();
-            this.loadFoods();
-        } else {
-            this.showNotification(data.error || 'Erro ao cadastrar alimento', 'error');
+        if (!quantity || parseFloat(quantity) <= 0) {
+            this.showNotification('Quantidade deve ser maior que zero', 'error');
+            return;
         }
-    } catch (error) {
-        console.error('❌ Erro ao adicionar alimento:', error);
-        this.showNotification('Erro de conexão com o servidor', 'error');
-    } finally {
-        this.showLoading(false);
+
+        this.showLoading(true);
+
+        try {
+            const token = this.auth ? this.auth.getToken() : null;
+            
+            if (!token) {
+                this.showNotification('Você precisa estar logado', 'error');
+                return;
+            }
+
+            const response = await fetch(`${window.location.origin}/api/foods`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${token}`,
+                    'ngrok-skip-browser-warning': 'true'
+                },
+                body: JSON.stringify({ 
+                    name, 
+                    expiry_date, 
+                    quantity: parseFloat(quantity),
+                    unit,
+                    food_type 
+                })
+            });
+
+            const data = await response.json();
+
+            if (response.ok) {
+                this.showNotification('Alimento cadastrado com sucesso!', 'success');
+                this.showScreen('main-screen');
+                document.getElementById('add-food-form').reset();
+                
+                // Reset para valores padrão
+                document.getElementById('food-quantity').value = '1';
+                document.getElementById('food-unit').value = 'unidades';
+                
+                if (window.foodsManager) {
+                    window.foodsManager.loadFoods();
+                }
+            } else {
+                this.showNotification(data.error || 'Erro ao cadastrar alimento', 'error');
+            }
+        } catch (error) {
+            console.error('❌ Erro ao adicionar alimento:', error);
+            this.showNotification('Erro de conexão com o servidor', 'error');
+        } finally {
+            this.showLoading(false);
+        }
     }
-}
 
     showLoading(show) {
         const loading = document.getElementById('loading');
@@ -285,6 +436,7 @@ class EcoMidaApp {
 
     filterTipsByCategory(button) {
     }
+
 }
 
 document.addEventListener('DOMContentLoaded', () => {
