@@ -233,6 +233,8 @@ class EcoMidaApp {
 
     onScreenShow(screenId) {
         const fab = document.getElementById('fab-add-food');
+        
+        // Mostrar FAB apenas na tela principal quando logado
         if (screenId === 'main-screen' && this.currentUser) {
             if (fab) fab.style.display = 'flex';
         } else {
@@ -246,6 +248,9 @@ class EcoMidaApp {
                 }
                 break;
             case 'tips-screen':
+                if (window.tipsManager) {
+                    window.tipsManager.loadTips();
+                }
                 break;
             case 'login-screen':
                 this.updateHeaderVisibility(false);
