@@ -12,7 +12,6 @@ class TipsManager {
         this.attachTipEvents();
     }
 
-    // 📖 CARREGAR DICAS
     async loadTips() {
         try {
             console.log('🔗 Carregando dicas...');
@@ -37,7 +36,6 @@ class TipsManager {
         }
     }
 
-    // 🎯 RENDER DICAS
     renderTips(tips) {
         const tipsList = document.getElementById('tips-list');
         
@@ -46,7 +44,6 @@ class TipsManager {
             return;
         }
 
-        // Filtrar por categoria
         let filteredTips = tips;
         if (this.currentCategory !== 'all') {
             filteredTips = tips.filter(tip => tip.food_category === this.currentCategory);
@@ -82,15 +79,12 @@ class TipsManager {
         this.attachTipCardEvents();
     }
 
-    // 📝 FORMATAR CONTEÚDO DA DICA
     formatTipContent(content) {
-        // Quebrar em parágrafos se tiver quebras de linha
         return content.split('\n').map(paragraph => 
             paragraph.trim() ? `<p>${this.escapeHtml(paragraph)}</p>` : ''
         ).join('');
     }
 
-    // ⭐ FAVORITAR/DESFAVORITAR
     toggleFavorite(tipId) {
         if (this.favoriteTips.has(tipId)) {
             this.favoriteTips.delete(tipId);
@@ -122,7 +116,6 @@ class TipsManager {
         }
     }
 
-    // 💾 SALVAR FAVORITOS NO LOCALSTORAGE
     saveFavorites() {
         localStorage.setItem('favoriteTips', JSON.stringify([...this.favoriteTips]));
     }
@@ -138,23 +131,18 @@ class TipsManager {
         }
     }
 
-    // 🏷️ FILTRAR POR CATEGORIA
     filterByCategory(category) {
         this.currentCategory = category;
         
-        // Atualizar botões ativos
         document.querySelectorAll('.category-btn').forEach(btn => {
             btn.classList.remove('active');
         });
         document.querySelector(`.category-btn[data-category="${category}"]`).classList.add('active');
         
-        // Recarregar dicas
         this.loadTips();
     }
 
-    // 🖱️ ANEXAR EVENTOS
     attachTipEvents() {
-        // Botões de categoria
         document.addEventListener('click', (e) => {
             if (e.target.classList.contains('category-btn')) {
                 const category = e.target.getAttribute('data-category');
@@ -164,7 +152,6 @@ class TipsManager {
     }
 
     attachTipCardEvents() {
-        // Botões de favorito
         document.querySelectorAll('.favorite-btn').forEach(btn => {
             btn.addEventListener('click', (e) => {
                 e.stopPropagation();
@@ -174,7 +161,6 @@ class TipsManager {
         });
     }
 
-    // 🏷️ OBTER LABEL DA CATEGORIA
     getCategoryLabel(category) {
         const categories = {
             'laticinios': 'Laticínios',
@@ -188,7 +174,6 @@ class TipsManager {
         return categories[category] || category;
     }
 
-    // 📭 ESTADOS VAZIOS
     showEmptyState() {
         const tipsList = document.getElementById('tips-list');
         tipsList.innerHTML = `
@@ -212,7 +197,6 @@ class TipsManager {
         `;
     }
 
-    // 🔔 NOTIFICAÇÕES
     showNotification(message, type = 'info') {
         if (window.app && window.app.showNotification) {
             window.app.showNotification(message, type);
@@ -221,7 +205,6 @@ class TipsManager {
         }
     }
 
-    // 🛡️ PREVENIR XSS
     escapeHtml(unsafe) {
         if (!unsafe) return '';
         return unsafe
@@ -248,7 +231,7 @@ class TipsManager {
             if (response.ok) {
                 const data = await response.json();
                 console.log('📚 Dicas recebidas:', data);
-                this.renderTips(data.tips || data); // Tenta ambas as possibilidades
+                this.renderTips(data.tips || data); 
                 return data.tips || data;
             } else {
                 const errorText = await response.text();
@@ -262,12 +245,10 @@ class TipsManager {
         }
     }
 
-    // ⭐ FILTRAR DICAS FAVORITAS
     getFavoriteTips(allTips) {
         return allTips.filter(tip => this.favoriteTips.has(tip.id));
     }
 
-    // 🎯 RENDER DICAS - ATUALIZADO COM FAVORITAS
     renderTips(tips) {
         const tipsList = document.getElementById('tips-list');
         
@@ -276,7 +257,6 @@ class TipsManager {
             return;
         }
 
-        // Filtrar por categoria
         let filteredTips = tips;
         if (this.currentCategory !== 'all') {
             if (this.currentCategory === 'favorites') {
@@ -316,7 +296,6 @@ class TipsManager {
         this.attachTipCardEvents();
     }
 
-    // 🏷️ ATUALIZAR O GET CATEGORY LABEL
     getCategoryLabel(category) {
         const categories = {
             'laticinios': 'Laticínios',
@@ -326,12 +305,11 @@ class TipsManager {
             'graos': 'Grãos',
             'bebidas': 'Bebidas',
             'outros': 'Outros',
-            'favorites': 'Favoritas' // 🔥 NOVA CATEGORIA
+            'favorites': 'Favoritas' 
         };
         return categories[category] || category;
     }
 
-    // 📭 ATUALIZAR ESTADO VAZIO PARA FAVORITAS
     showCategoryEmptyState() {
         const tipsList = document.getElementById('tips-list');
         let message = '';
@@ -358,7 +336,6 @@ class TipsManager {
 
 }
 
-// INICIALIZAR
 document.addEventListener('DOMContentLoaded', () => {
     window.tipsManager = new TipsManager();
     console.log('💡 TipsManager carregado');

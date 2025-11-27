@@ -9,14 +9,27 @@ class User(db.Model):
     username = db.Column(db.String(80), unique=True, nullable=False)
     email = db.Column(db.String(120), unique=True, nullable=False)
     password_hash = db.Column(db.String(128), nullable=False)
-    accessibility_settings = db.Column(db.JSON, default={
-        "voice_reading": False,
-        "notification_days_before": 3
+    
+    notification_settings = db.Column(db.JSON, default={
+        "enabled": True,
+        "days_before": 3,
+        "push_notifications": True,
+        "email_notifications": False,
+        "alert_sound": True,
+        "quiet_hours": {
+            "enabled": False,
+            "start": "22:00",
+            "end": "08:00"
+        }
     })
+    
+    accessibility_settings = db.Column(db.JSON, default={
+        "voice_reading": False
+    })
+    
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
     updated_at = db.Column(db.DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
     
-    # Relacionamentos
     foods = db.relationship('Food', backref='user', lazy=True)
     histories = db.relationship('History', backref='user', lazy=True)
     
@@ -31,7 +44,11 @@ class User(db.Model):
             "id": self.id,
             "username": self.username,
             "email": self.email,
-            "accessibility_settings": self.accessibility_settings,
-            "created_at": self.created_at.isoformat(),
-            "updated_at": self.updated_at.isoformat()
+            "notification_settings": self.notification_settings, 
+            "accessibility_settings": self.accessibility_settings, 
+            "created_at": self.created_at.isoformat(),            
+            "updated_at": self.updated_at.isoformat()           
         }
+    
+    def __repr__(self):
+        return f'<User {self.username}>'

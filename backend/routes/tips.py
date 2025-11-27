@@ -7,7 +7,6 @@ import traceback
 tips_bp = Blueprint('tips', __name__)
 
 @tips_bp.route('/tips', methods=['GET'])
-@jwt_required()
 def get_tips():
     try:
         category = request.args.get('category')

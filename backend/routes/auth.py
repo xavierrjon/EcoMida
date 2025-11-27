@@ -35,7 +35,6 @@ def register():
     try:
         print("📝 Tentativa de registro recebida")
         
-        # Verificar se há dados JSON
         if not request.is_json:
             return jsonify({"error": "Content-Type deve ser application/json"}), 400
             
@@ -50,13 +49,11 @@ def register():
         
         print(f"📧 Dados recebidos - Username: '{username}', Email: '{email}', Password: {'*' * len(password)}")
         
-        # Validação dos dados
         errors = validate_user_data(username, email, password)
         if errors:
             print(f"❌ Erros de validação: {errors}")
             return jsonify({"error": "Dados inválidos", "details": errors}), 400
         
-        # Verificar se usuário já existe
         if User.query.filter_by(email=email).first():
             print(f"❌ Email já cadastrado: {email}")
             return jsonify({"error": "Email já cadastrado"}), 400
@@ -65,7 +62,6 @@ def register():
             print(f"❌ Username já existe: {username}")
             return jsonify({"error": "Username já existe"}), 400
         
-        # Criar novo usuário
         print("✅ Dados válidos, criando usuário...")
         new_user = User(username=username, email=email)
         new_user.set_password(password)
@@ -95,7 +91,6 @@ def login():
     try:
         print("🔐 Tentativa de login recebida")
         
-        # Verificar se há dados JSON
         if not request.is_json:
             return jsonify({"error": "Content-Type deve ser application/json"}), 400
             
@@ -111,7 +106,7 @@ def login():
             return jsonify({"error": "Email e senha são obrigatórios"}), 400
         
         print(f"🔍 Buscando usuário: {email}")
-        # Buscar usuário
+     
         user = User.query.filter_by(email=email).first()
         if not user:
             print("❌ Usuário não encontrado")
@@ -119,12 +114,10 @@ def login():
         
         print(f"✅ Usuário encontrado: {user.username}")
         
-        # Verificar senha
         if not user.check_password(password):
             print("❌ Senha incorreta")
             return jsonify({"error": "Credenciais inválidas"}), 401
         
-        # Criar token
         access_token = create_access_token(identity=user.email)
         
         print("✅ Login realizado com sucesso")

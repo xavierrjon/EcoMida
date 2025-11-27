@@ -41,7 +41,6 @@ class EcoMidaApp {
             return;
         }
 
-        // Filtrar alimentos
         let filteredFoods = foods.filter(food => {
             if (activeTab === 'consumed') return food.status === 'consumed';
             if (activeTab === 'discarded') return food.status === 'discarded';
@@ -53,7 +52,6 @@ class EcoMidaApp {
             return;
         }
 
-        // Ordenar
         if (activeTab === 'active') {
             filteredFoods.sort((a, b) => new Date(a.expiry_date) - new Date(b.expiry_date));
         } else {
@@ -173,6 +171,39 @@ class EcoMidaApp {
             if (e.target.classList.contains('category-btn')) {
                 this.filterTipsByCategory(e.target);
             }
+
+            if (e.target.id === 'notification-settings-btn' || e.target.closest('#notification-settings-btn')) {
+                console.log('🔔 Botão de notificações clicado');
+                
+                if (!this.currentUser) {
+                    this.showNotification('Faça login para acessar as configurações', 'error');
+                    return;
+                }
+                
+                if (window.notificationSettings) {
+                    window.notificationSettings.showSettings();
+                } else {
+                    console.error('❌ NotificationSettings não carregado');
+                    this.showNotification('Sistema de configurações não carregado', 'error');
+                }
+                return;
+            }
+
+            if (e.target.id === 'notification-settings-btn' || e.target.closest('#notification-settings-btn')) {
+                e.preventDefault();
+                console.log('📱 Botão de notificações tocado no mobile');
+                
+                if (!this.currentUser) {
+                    this.showNotification('Faça login para acessar as configurações', 'error');
+                    return;
+                }
+                
+                if (window.notificationSettings) {
+                    window.notificationSettings.showSettings();
+                }
+                return;
+            }
+
         });
 
         const loginForm = document.getElementById('login-form');
@@ -234,7 +265,6 @@ class EcoMidaApp {
     onScreenShow(screenId) {
         const fab = document.getElementById('fab-add-food');
         
-        // Mostrar FAB apenas na tela principal quando logado
         if (screenId === 'main-screen' && this.currentUser) {
             if (fab) fab.style.display = 'flex';
         } else {
@@ -400,7 +430,6 @@ class EcoMidaApp {
                 this.showScreen('main-screen');
                 document.getElementById('add-food-form').reset();
                 
-                // Reset para valores padrão
                 document.getElementById('food-quantity').value = '1';
                 document.getElementById('food-unit').value = 'unidades';
                 

@@ -5,8 +5,8 @@ class Food(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     name = db.Column(db.String(100), nullable=False)
     expiry_date = db.Column(db.Date, nullable=False)
-    quantity = db.Column(db.Float, default=1.0)  # ✅ Mudou para Float
-    unit = db.Column(db.String(20), default='unidades')  # ✅ Nova coluna
+    quantity = db.Column(db.Float, default=1.0) 
+    unit = db.Column(db.String(20), default='unidades')  
     food_type = db.Column(db.String(50), default='outros')
     status = db.Column(db.String(20), default='active')
     user_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)

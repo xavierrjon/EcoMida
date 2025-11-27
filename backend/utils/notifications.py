@@ -8,12 +8,11 @@ class NotificationSystem:
     def check_expiring_foods(self):
         """Verifica alimentos que estão próximos do vencimento"""
         today = datetime.utcnow()
-        threshold_date = today + timedelta(days=3)  # 3 dias de antecedência
+        threshold_date = today + timedelta(days=3)  
         
         foods_collection = self.db.foods
         expiring_foods = []
         
-        # Encontrar alimentos que expiram em até 3 dias e estão ativos
         foods = foods_collection.find({
             "expiry_date": {"$lte": threshold_date, "$gte": today},
             "status": "active"
