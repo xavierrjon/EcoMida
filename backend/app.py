@@ -233,6 +233,10 @@ def create_app():
     
     return app
 
+    @app.route('/sw-notifications.js')
+    def serve_sw_notifications():
+        return send_from_directory('../frontend', 'sw-notifications.js')
+
 if __name__ == '__main__':
     app = create_app()
     

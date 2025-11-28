@@ -204,6 +204,24 @@ class EcoMidaApp {
                 return;
             }
 
+            if (e.target.id === 'profile-btn' || e.target.closest('#profile-btn')) {
+                console.log('👤 Botão de perfil clicado');
+                
+                if (!this.currentUser) {
+                    this.showNotification('Faça login para acessar o perfil', 'error');
+                    return;
+                }
+                
+                // Mostrar tela de perfil
+                if (window.profileManager) {
+                    window.profileManager.showProfile();
+                } else {
+                    console.error('❌ ProfileManager não carregado');
+                    this.showNotification('Sistema de perfil não carregado', 'error');
+                }
+                return;
+            }
+
         });
 
         const loginForm = document.getElementById('login-form');

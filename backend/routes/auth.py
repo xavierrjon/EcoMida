@@ -133,19 +133,132 @@ def login():
         print(traceback.format_exc())
         return jsonify({"error": f"Erro interno: {str(e)}"}), 500
 
+# 🔥 ROTAS DE PERFIL E LOGOUT CORRIGIDAS (SEM DUPLICAÇÃO)
+
 @auth_bp.route('/profile', methods=['GET'])
 @jwt_required()
 def get_profile():
+    """Retorna os dados do perfil do usuário logado"""
     try:
-        current_user = get_jwt_identity()
+        current_user_email = get_jwt_identity()
+        user = User.query.filter_by(email=current_user_email).first()
         
-        user = User.query.filter_by(email=current_user).first()
         if not user:
             return jsonify({"error": "Usuário não encontrado"}), 404
         
         return jsonify({
-            "user": user.to_dict()
+            "profile": user.to_dict()
         }), 200
         
     except Exception as e:
+        return jsonify({"error": f"Erro interno: {str(e)}"}), 500
+
+@auth_bp.route('/profile', methods=['PUT'])
+@jwt_required()
+def update_profile():
+    """Atualiza os dados do perfil do usuário"""
+    try:
+        current_user_email = get_jwt_identity()
+        user = User.query.filter_by(email=current_user_email).first()
+        
+        if not user:
+            return jsonify({"error": "Usuário não encontrado"}), 404
+        
+        data = request.get_json()
+        
+        if not data:
+            return jsonify({"error": "Dados não fornecidos"}), 400
+        
+        # Atualizar campos permitidos
+        if 'username' in data and data['username']:
+            # Verificar se username já existe (exceto para o próprio usuário)
+            existing_user = User.query.filter(
+                User.username == data['username'],
+                User.id != user.id
+            ).first()
+            if existing_user:
+                return jsonify({"error": "Nome de usuário já está em uso"}), 400
+            user.username = data['username']
+        
+        if 'email' in data and data['email']:
+            # Verificar se email já existe (exceto para o próprio usuário)
+            existing_user = User.query.filter(
+                User.email == data['email'],
+                User.id != user.id
+            ).first()
+            if existing_user:
+                return jsonify({"error": "Email já está em uso"}), 400
+            user.email = data['email']
+        
+        # Atualizar configurações de acessibilidade se fornecidas
+        if 'accessibility_settings' in data:
+            user.accessibility_settings = {
+                **user.accessibility_settings,
+                **data['accessibility_settings']
+            }
+        
+        db.session.commit()
+        
+        return jsonify({
+            "message": "Perfil atualizado com sucesso",
+            "profile": user.to_dict()
+        }), 200
+        
+    except Exception as e:
+        db.session.rollback()
+        return jsonify({"error": f"Erro interno: {str(e)}"}), 500
+
+@auth_bp.route('/logout', methods=['POST'])
+@jwt_required()
+def logout():
+    """Faz logout do usuário"""
+    try:
+        return jsonify({
+            "message": "Logout realizado com sucesso"
+        }), 200
+        
+    except Exception as e:
+        return jsonify({"error": f"Erro interno: {str(e)}"}), 500
+    
+# routes/auth.py - ADICIONE esta rota para mudança de senha
+@auth_bp.route('/change-password', methods=['POST'])
+@jwt_required()
+def change_password():
+    """Altera a senha do usuário"""
+    try:
+        current_user_email = get_jwt_identity()
+        user = User.query.filter_by(email=current_user_email).first()
+        
+        if not user:
+            return jsonify({"error": "Usuário não encontrado"}), 404
+        
+        data = request.get_json()
+        
+        if not data:
+            return jsonify({"error": "Dados não fornecidos"}), 400
+        
+        current_password = data.get('current_password')
+        new_password = data.get('new_password')
+        
+        if not current_password or not new_password:
+            return jsonify({"error": "Senha atual e nova senha são obrigatórias"}), 400
+        
+        # Verificar senha atual
+        if not user.check_password(current_password):
+            return jsonify({"error": "Senha atual incorreta"}), 400
+        
+        # Validar nova senha
+        if not validate_password(new_password):
+            return jsonify({"error": "Nova senha deve ter pelo menos 6 caracteres"}), 400
+        
+        # Alterar senha
+        user.set_password(new_password)
+        db.session.commit()
+        
+        return jsonify({
+            "message": "Senha alterada com sucesso"
+        }), 200
+        
+    except Exception as e:
+        db.session.rollback()
         return jsonify({"error": f"Erro interno: {str(e)}"}), 500

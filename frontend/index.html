@@ -8,6 +8,7 @@
     <meta name="description" content="Gerencie a validade dos seus alimentos e receba dicas de armazenamento">
     <link rel="manifest" href="manifest.json">
     <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="default">
     <meta name="apple-mobile-web-app-title" content="EcoMida">
     <link rel="apple-touch-icon" href="images/ecomida192.png">
@@ -26,7 +27,7 @@
                     <span class="material-icons">notifications_active</span>
                     <span id="notification-badge" class="badge hidden">0</span>
                 </button>
-                <button id="profile-btn" class="icon-btn">
+                <button id="profile-btn" class="icon-btn"> 
                     <span class="material-icons">account_circle</span>
                 </button>
             </div>
@@ -232,6 +233,7 @@
     <script src="auth.js"></script>
     <script src="notifications-simple.js"></script>
     <script src="notification-settings.js"></script>
+    <script src="profile.js"></script>
     <script src="foods.js"></script>
     <script src="tips.js"></script>
     <script src="app.js"></script>
@@ -239,7 +241,7 @@
 
     <script>
         if ('serviceWorker' in navigator) {
-            navigator.serviceWorker.register('sw.js').catch(console.error);
+            navigator.serviceWorker.register('sw-notifications.js').catch(console.error);
         }
     </script>
 </body>
