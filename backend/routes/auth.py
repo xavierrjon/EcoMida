@@ -110,13 +110,13 @@ def login():
         user = User.query.filter_by(email=email).first()
         if not user:
             print("❌ Usuário não encontrado")
-            return jsonify({"error": "Credenciais inválidas"}), 401
+            return jsonify({"error": "Usuário não encontrado!"}), 401
         
         print(f"✅ Usuário encontrado: {user.username}")
         
         if not user.check_password(password):
             print("❌ Senha incorreta")
-            return jsonify({"error": "Credenciais inválidas"}), 401
+            return jsonify({"error": "Senha incorreta!"}), 401
         
         access_token = create_access_token(identity=user.email)
         
@@ -133,7 +133,6 @@ def login():
         print(traceback.format_exc())
         return jsonify({"error": f"Erro interno: {str(e)}"}), 500
 
-# 🔥 ROTAS DE PERFIL E LOGOUT CORRIGIDAS (SEM DUPLICAÇÃO)
 
 @auth_bp.route('/profile', methods=['GET'])
 @jwt_required()

@@ -21,7 +21,6 @@ def create_app():
                 template_folder='../frontend')
     app.config.from_object(Config)
     
-    # ✅ CORS CONFIGURADO PARA NGROK
     CORS(app, resources={
         r"/api/*": {
             "origins": [
@@ -29,7 +28,7 @@ def create_app():
                 "http://localhost:8080", 
                 "https://*.ngrok.io",
                 "http://*.ngrok.io",
-                "*"  # Para desenvolvimento
+                "*"  
             ],
             "methods": ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
             "allow_headers": ["Content-Type", "Authorization", "ngrok-skip-browser-warning"]
