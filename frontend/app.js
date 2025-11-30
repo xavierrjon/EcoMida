@@ -212,7 +212,6 @@ class EcoMidaApp {
                     return;
                 }
                 
-                // Mostrar tela de perfil
                 if (window.profileManager) {
                     window.profileManager.showProfile();
                 } else {

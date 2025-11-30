@@ -252,26 +252,6 @@ class ProfileManager {
                     </button>
                 </div>
 
-                <!-- ESTATÍSTICAS -->
-                <div class="setting-group">
-                    <h3 class="setting-subtitle">Estatísticas</h3>
-                    
-                    <div class="stats-grid">
-                        <div class="stat-item">
-                            <span class="stat-number" id="stat-foods">0</span>
-                            <span class="stat-label">Alimentos</span>
-                        </div>
-                        <div class="stat-item">
-                            <span class="stat-number" id="stat-tips">0</span>
-                            <span class="stat-label">Dicas Salvas</span>
-                        </div>
-                        <div class="stat-item">
-                            <span class="stat-number" id="stat-days">0</span>
-                            <span class="stat-label">Dias no App</span>
-                        </div>
-                    </div>
-                </div>
-
                 <!-- AÇÕES -->
                 <div class="profile-actions">
                     <button type="submit" class="btn-primary">
@@ -334,21 +314,6 @@ class ProfileManager {
         this.updateStats();
         
         console.log('✅ Formulário de perfil atualizado');
-    }
-
-    // 📊 ATUALIZAR ESTATÍSTICAS
-    async updateStats() {
-        // Placeholder - pode ser expandido para buscar dados reais
-        document.getElementById('stat-foods').textContent = '--';
-        document.getElementById('stat-tips').textContent = '--';
-        
-        // Calcular dias no app
-        if (this.currentProfile?.created_at) {
-            const created = new Date(this.currentProfile.created_at);
-            const today = new Date();
-            const days = Math.floor((today - created) / (1000 * 60 * 60 * 24));
-            document.getElementById('stat-days').textContent = days;
-        }
     }
 
     // 👆 ADICIONAR EVENTOS

@@ -1862,16 +1862,12 @@ input:checked + .slider:before {
     }
 }
 
-/* 👤 ESTILOS PARA TELA DE PERFIL */
-
-/* CONTAINER PRINCIPAL */
 .profile-container {
     padding: 1rem;
     max-width: 600px;
     margin: 0 auto;
 }
 
-/* HEADER DO PERFIL */
 .profile-header {
     background: linear-gradient(135deg, #4CAF50, #45a049);
     color: white;
@@ -1916,38 +1912,6 @@ input:checked + .slider:before {
     font-size: 0.9rem;
 }
 
-/* GRID DE ESTATÍSTICAS */
-.stats-grid {
-    display: grid;
-    grid-template-columns: repeat(3, 1fr);
-    gap: 1rem;
-    margin-top: 1rem;
-}
-
-.stat-item {
-    text-align: center;
-    padding: 1rem;
-    background: #f8f9fa;
-    border-radius: 8px;
-    border: 1px solid #e9ecef;
-}
-
-.stat-number {
-    display: block;
-    font-size: 1.5rem;
-    font-weight: bold;
-    color: #4CAF50;
-    margin-bottom: 0.25rem;
-}
-
-.stat-label {
-    font-size: 0.8rem;
-    color: #666;
-    text-transform: uppercase;
-    letter-spacing: 0.5px;
-}
-
-/* AÇÕES DO PERFIL */
 .profile-actions {
     display: flex;
     flex-direction: column;
@@ -1955,7 +1919,6 @@ input:checked + .slider:before {
     margin-top: 2rem;
 }
 
-/* BOTÃO DE PERIGO */
 .btn-danger {
     background: #f44336;
     color: white;
@@ -1976,7 +1939,6 @@ input:checked + .slider:before {
     background: #d32f2f;
 }
 
-/* INPUTS DO PERFIL */
 .profile-container .input-group {
     margin-bottom: 1rem;
 }
@@ -2002,7 +1964,6 @@ input:checked + .slider:before {
     border-color: #4CAF50;
 }
 
-/* MOBILE */
 @media (max-width: 768px) {
     .profile-header {
         padding: 1.5rem 1rem;
@@ -2035,7 +1996,6 @@ input:checked + .slider:before {
     }
 }
 
-/* 👤 ESTILOS PARA BOTÕES DO HEADER */
 .header-actions {
     display: flex;
     gap: 0.5rem;
@@ -2047,7 +2007,6 @@ input:checked + .slider:before {
     border: none;
     padding: 0.5rem;
     border-radius: 50%;
-    color: #ffffff;
     cursor: pointer;
     display: flex;
     align-items: center;
@@ -2064,7 +2023,6 @@ input:checked + .slider:before {
     font-size: 1.5rem;
 }
 
-/* MOBILE - Botões maiores para touch */
 @media (max-width: 768px) {
     .icon-btn {
         min-width: 44px;
@@ -2072,7 +2030,6 @@ input:checked + .slider:before {
     }
 }
 
-/* 🔥 CSS DE EMERGÊNCIA - Tela de perfil */
 #profile-screen {
     position: fixed;
     top: 0;
@@ -2090,7 +2047,6 @@ input:checked + .slider:before {
     transform: translateX(0);
 }
 
-/* Garantir que outras telas não interfiram */
 .screen:not(#profile-screen) {
     z-index: 1;
 }
@@ -2099,9 +2055,6 @@ input:checked + .slider:before {
     z-index: 10000 !important;
 }
 
-/* 👤 ESTILOS PARA TELA DE PERFIL - ATUALIZADO */
-
-/* BOTÃO SECUNDÁRIO PARA ALTERAR SENHA */
 .btn-secondary {
     background: #6c757d;
     color: white;

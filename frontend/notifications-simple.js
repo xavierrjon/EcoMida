@@ -3,9 +3,38 @@ console.log('🔔 NotificationsSimple carregando...');
 class NotificationsSimple {
     constructor() {
         this.baseURL = `${window.location.origin}/api`;
-        this.isSupported = 'serviceWorker' in navigator && 'PushManager' in window;
+        this.isSupported = this.checkSupport();
         this.isSubscribed = false;
+        this.hasPermission = false;
+        this.lastNotificationTime = 0; 
         console.log('✅ NotificationsSimple inicializado');
+    }
+
+    checkSupport() {
+        const hasNotification = 'Notification' in window;
+        const isHTTPS = window.location.protocol === 'https:' || 
+                        window.location.hostname === 'localhost' ||
+                        window.location.hostname.includes('ngrok');
+        
+        console.log('🔍 Suporte do navegador:', {
+            Notification: hasNotification,
+            HTTPS: isHTTPS,
+            UserAgent: navigator.userAgent
+        });
+        
+        return hasNotification && isHTTPS;
+    }
+
+    getAppContext() {
+        const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
+        const isPWA = window.matchMedia('(display-mode: standalone)').matches;
+        const isStandalone = 'standalone' in window.navigator && window.navigator.standalone;
+        
+        return {
+            isMobile: isMobile,
+            isPWA: isPWA || isStandalone,
+            context: isPWA ? 'pwa' : (isMobile ? 'mobile_browser' : 'desktop')
+        };
     }
 
     async setup() {
@@ -15,8 +44,13 @@ class NotificationsSimple {
         }
 
         try {
-            await navigator.serviceWorker.register('/sw-notifications.js');
-            console.log('✅ Service Worker registrado');
+            this.hasPermission = this.getPermissionStatus();
+            console.log('🔐 Permissão atual:', this.hasPermission);
+
+            if ('serviceWorker' in navigator) {
+                await navigator.serviceWorker.register('/sw.js');
+                console.log('✅ Service Worker registrado');
+            }
             
             return true;
         } catch (error) {
@@ -25,57 +59,302 @@ class NotificationsSimple {
         }
     }
 
-    async testNotification() {
-
-        if (this.isMobileDevice()) {
-            console.log('📱 Dispositivo mobile detectado');
-            return this.testMobileNotification();
-        }
-
-
-        console.log('🔔 Testando notificação COMPLETA...');
+    getPermissionStatus() {
+        if (!('Notification' in window)) return 'not-supported';
         
-        const swTest = await this.testServiceWorker();
-        console.log('🔧 Service Worker testado:', swTest);
+        switch(Notification.permission) {
+            case 'granted':
+                return 'granted';
+            case 'denied':
+                return 'denied';
+            case 'default':
+                return 'default';
+            default:
+                return 'unknown';
+        }
+    }
+
+    async testNotification() {
+        console.log('📱 Testando notificação...');
+        
+        const context = this.getAppContext();
+        console.log('🎯 Contexto do app:', context);
+        
+        if (context.isMobile && !context.isPWA) {
+            console.log('📱 Usuário no navegador mobile - mostrando prompt de PWA');
+            return await this.showPWAInstallPrompt();
+        }
         
         if (!this.isSupported) {
-            console.log('🔄 Usando fallback de notificação...');
-            return this.testFallbackNotification();
+            this.showNotSupportedMessage();
+            return false;
         }
 
+        const permissionStatus = this.getPermissionStatus();
+        
+        switch(permissionStatus) {
+            case 'granted':
+                return await this.showTestNotification();
+                
+            case 'denied':
+                this.showPermissionHelp(true);
+                return false;
+                
+            case 'default':
+                return await this.requestPermission();
+                
+            default:
+                this.showNotSupportedMessage();
+                return false;
+        }
+    }
+
+    async showPWAInstallPrompt() {
+        return new Promise((resolve) => {
+            const message = `
+🎯 **Melhor Experiência no Mobile**
+
+No navegador, as notificações podem não funcionar perfeitamente devido a limitações de segurança.
+
+**💡 Recomendação: Instale o EcoMida como App**
+
+Para instalar:
+📱 **Android Chrome:**
+   • Toque no menu (⋯) 
+   • "Adicionar à tela inicial"
+
+📱 **iPhone Safari:**
+   • Toque no ícone de compartilhar (⎗)
+   • "Adicionar à tela inicial"
+
+**✅ Como app nativo, você terá:**
+• Notificações confiáveis sobre alimentos
+• Acesso rápido direto da tela inicial  
+• Experiência otimizada para mobile
+• Funcionamento offline parcial
+
+Deseja tentar as notificações no navegador mesmo assim?
+            `;
+            
+            const tryAnyway = confirm(message);
+            if (tryAnyway) {
+               
+                this.continueWithNormalFlow().then(resolve);
+            } else {
+                resolve(false);
+            }
+        });
+    }
+
+    async continueWithNormalFlow() {
+        if (!this.isSupported) {
+            this.showNotSupportedMessage();
+            return false;
+        }
+
+        const permissionStatus = this.getPermissionStatus();
+        
+        switch(permissionStatus) {
+            case 'granted':
+                return await this.showTestNotification();
+            case 'denied':
+                this.showPermissionHelp(true);
+                return false;
+            case 'default':
+                return await this.requestPermission();
+            default:
+                return false;
+        }
+    }
+
+    async requestPermission() {
+        console.log('🔄 Pedindo permissão...');
+        
         try {
+            
             const permission = await Notification.requestPermission();
+            console.log('📱 Resposta da permissão:', permission);
             
             if (permission === 'granted') {
-                console.log('✅ Permissão concedida, enviando notificação...');
-                
-                if (navigator.serviceWorker.controller) {
-                    navigator.serviceWorker.controller.postMessage({
-                        type: 'SHOW_NOTIFICATION',
-                        title: '🔔 EcoMida - Teste PUSH',
-                        body: 'Notificações PUSH estão funcionando perfeitamente! Você receberá alertas automáticos.',
-                        icon: '/images/ecomida192.png',
-                        requireInteraction: true
-                    });
-                    console.log('✅ Notificação PUSH enviada via Service Worker');
-                } else {
-                    new Notification('🔔 EcoMida - Teste', {
-                        body: 'Notificações funcionando! Service Worker não está controlando.',
-                        icon: '/images/ecomida192.png',
-                        requireInteraction: true
-                    });
-                    console.log('✅ Notificação direta enviada');
-                }
-                
+                this.hasPermission = true;
+                await this.showTestNotification();
                 return true;
             } else {
-                console.log('🔕 Permissão negada:', permission);
-                alert('Permissão para notificações negada: ' + permission);
+                this.showPermissionHelp(false);
                 return false;
             }
         } catch (error) {
-            console.error('❌ Erro na notificação:', error);
-            return this.testFallbackNotification();
+            console.error('❌ Erro ao pedir permissão:', error);
+            this.showPermissionHelp(false);
+            return false;
+        }
+    }
+
+    async showTestNotification() {
+        try {
+            console.log('🎯 Mostrando notificação de teste...');
+            
+            const context = this.getAppContext();
+            const options = {
+                body: '✅ Notificações estão funcionando! Você receberá alertas quando alimentos estiverem próximos do vencimento.',
+                icon: '/images/ecomida192.png',
+                badge: '/images/ecomida192.png',
+                tag: 'test-notification'
+            };
+
+            if (context.isMobile) {
+                options.requireInteraction = false;
+            }
+
+            const notification = new Notification('🍎 EcoMida - Teste', options);
+
+            notification.onclick = () => {
+                console.log('📲 Notificação clicada');
+                window.focus();
+                notification.close();
+            };
+
+            setTimeout(() => {
+                notification.close();
+            }, context.isMobile ? 4000 : 6000);
+
+            console.log('✅ Notificação de teste mostrada com sucesso');
+            return true;
+
+        } catch (error) {
+            console.error('❌ Erro ao mostrar notificação:', error);
+            
+            alert('🔔 EcoMida\n\nNotificações configuradas! Você receberá alertas quando alimentos estiverem próximos do vencimento.');
+            return true;
+        }
+    }
+
+    async showAlertsInUI() {
+        const expiringFoods = await this.checkExpiringFoods();
+        
+        if (expiringFoods.length > 0) {
+            this.createAlertBadge(expiringFoods.length);
+            
+            
+            await this.showAutomaticNotification(expiringFoods);
+        } else {
+            this.removeAlertBadge();
+        }
+    }
+
+    async showAutomaticNotification(expiringFoods) {
+        const context = this.getAppContext();
+        
+        if (this.getPermissionStatus() !== 'granted') {
+            console.log('🔐 Sem permissão para notificações automáticas');
+            return;
+        }
+        
+        const now = Date.now();
+        if (now - this.lastNotificationTime < 60000) { 
+            console.log('⏰ Notificação muito recente, aguardando...');
+            return;
+        }
+        
+        try {
+            const today = new Date();
+            const foodsByDays = {};
+            
+            expiringFoods.forEach(food => {
+                const expiryDate = new Date(food.expiry_date);
+                const daysUntil = Math.floor((expiryDate - today) / (1000 * 60 * 60 * 24));
+                
+                if (!foodsByDays[daysUntil]) {
+                    foodsByDays[daysUntil] = [];
+                }
+                foodsByDays[daysUntil].push(food.name);
+            });
+            
+            let message = '';
+            let title = '🍎 EcoMida';
+            let requireInteraction = true;
+            
+            if (foodsByDays[0] && foodsByDays[0].length > 0) {
+               
+                title = '⚠️ Atenção!';
+                if (foodsByDays[0].length === 1) {
+                    message = `${foodsByDays[0][0]} vence HOJE! Consuma ou descarte agora.`;
+                } else {
+                    const foodList = foodsByDays[0].slice(0, 3).join(', ');
+                    const extra = foodsByDays[0].length > 3 ? ` e mais ${foodsByDays[0].length - 3} alimentos` : '';
+                    message = `${foodList}${extra} vencem HOJE! Ação necessária.`;
+                }
+            } else if (foodsByDays[1] && foodsByDays[1].length > 0) {
+          
+                title = '🔔 Alerta!';
+                if (foodsByDays[1].length === 1) {
+                    message = `${foodsByDays[1][0]} vence AMANHÃ! Planeje seu consumo.`;
+                } else {
+                    const foodList = foodsByDays[1].slice(0, 3).join(', ');
+                    message = `${foodList} vencem amanhã! Verifique sua despensa.`;
+                }
+            } else if (foodsByDays[2] && foodsByDays[2].length > 0) {
+           
+                title = '📅 Lembrete';
+                if (foodsByDays[2].length === 1) {
+                    message = `${foodsByDays[2][0]} vence em 2 dias.`;
+                } else {
+                    message = `${foodsByDays[2].length} alimentos vencem em 2 dias.`;
+                }
+                requireInteraction = false;
+            } else {
+                
+                for (const [days, foods] of Object.entries(foodsByDays)) {
+                    if (parseInt(days) <= 7) {
+                        title = '🍽️ Aviso';
+                        if (foods.length === 1) {
+                            message = `${foods[0]} vence em ${days} dias.`;
+                        } else {
+                            message = `${foods.length} alimentos vencem em ${days} dias.`;
+                        }
+                        requireInteraction = false;
+                        break;
+                    }
+                }
+            }
+            
+            if (message) {
+                const options = {
+                    body: message,
+                    icon: '/images/ecomida192.png',
+                    badge: '/images/ecomida192.png',
+                    tag: 'food-expiry-alert',
+                    requireInteraction: requireInteraction
+                };
+
+                if (context.isMobile) {
+                    options.requireInteraction = false; 
+                }
+
+                const notification = new Notification(title, options);
+
+                notification.onclick = () => {
+                    console.log('📲 Notificação de alimento clicada');
+                    window.focus();
+                    
+                    if (window.app) {
+                        window.app.showScreen('main-screen');
+                    }
+                    
+                    notification.close();
+                };
+
+                const autoCloseTime = requireInteraction ? 10000 : 6000; 
+                setTimeout(() => {
+                    notification.close();
+                }, autoCloseTime);
+
+                this.lastNotificationTime = now;
+                console.log('✅ Notificação automática enviada:', { title, message });
+            }
+            
+        } catch (error) {
+            console.error('❌ Erro na notificação automática:', error);
         }
     }
 
@@ -107,18 +386,11 @@ class NotificationsSimple {
         }
     }
 
-    async showAlertsInUI() {
-        const expiringFoods = await this.checkExpiringFoods();
-        
-        if (expiringFoods.length > 0) {
-            this.createAlertBadge(expiringFoods.length);
-        }
-    }
-
     createAlertBadge(count) {
+     
         this.removeAlertBadge();
 
-        const alertBtn = document.getElementById('alert-settings-btn');
+        const alertBtn = document.getElementById('notification-settings-btn');
         if (alertBtn && count > 0) {
             const badge = document.createElement('div');
             badge.className = 'alert-badge';
@@ -152,136 +424,71 @@ class NotificationsSimple {
         }
     }
 
-    async testServiceWorker() {
-        try {
-            console.log('🔧 Testando Service Worker...');
-            
-            if (!navigator.serviceWorker.controller) {
-                console.log('❌ Nenhum Service Worker controlando a página');
-                return false;
-            }
-            
-            navigator.serviceWorker.controller.postMessage({
-                type: 'TEST_NOTIFICATION',
-                message: 'Teste do cliente'
-            });
-            
-            console.log('✅ Mensagem enviada para Service Worker');
-            return true;
-        } catch (error) {
-            console.error('❌ Erro ao testar Service Worker:', error);
-            return false;
-        }
-    }
-
-    isMobileDevice() {
-        return /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
-    }
-
-    async testMobileNotification() {
-        console.log('📱 Testando notificação no mobile...');
+    showPermissionHelp(isDenied) {
+        const context = this.getAppContext();
         
-        if (!this.isMobileDevice()) {
-            return this.testNotification(); 
-        }
-
-        if (Notification.permission === 'default') {
-            const userConfirmed = confirm(
-                '🔔 Para receber alertas sobre alimentos próximos do vencimento, permita notificações.\n\n' +
-                'Clique em "OK" para permitir notificações.'
-            );
-            
-            if (!userConfirmed) {
-                console.log('📱 Usuário cancelou notificação no mobile');
-                return false;
-            }
-        }
-
-        try {
-            const permission = await Notification.requestPermission();
-            
-            if (permission === 'granted') {
-                const notification = new Notification('🔔 EcoMida', {
-                    body: 'Notificações ativadas! Você receberá alertas quando alimentos estiverem próximos do vencimento.',
-                    icon: '/images/ecomida192.png',
-                    badge: '/images/ecomida192.png',
-                    tag: 'mobile-test'
-                });
-
-                notification.onclick = () => {
-                   
-                    window.focus();
-                    notification.close();
-                };
-
-                console.log('✅ Notificação mobile enviada');
-                return true;
-            } else {
-                this.showMobilePermissionHelp();
-                return false;
-            }
-        } catch (error) {
-            console.error('❌ Erro na notificação mobile:', error);
-          
-            alert('📱 EcoMida\n\nNotificações configuradas! Você receberá alertas sobre alimentos próximos do vencimento.');
-            return true;
-        }
-    }
-
-    showMobilePermissionHelp() {
-        const isIOS = /iPhone|iPad|iPod/i.test(navigator.userAgent);
-        const isAndroid = /Android/i.test(navigator.userAgent);
+        let message = '🔔 Configuração de Notificações\n\n';
         
-        let message = '📱 Configuração de Notificações\n\n';
-        
-        if (isIOS) {
-            message += 'Para ativar notificações no iPhone/iPad:\n';
-            message += '1. Abra "Ajustes" → "Safari"\n';
-            message += '2. Vá em "Configurações para Sites"\n';
-            message += '3. Encontre ' + window.location.hostname + '\n';
-            message += '4. Toque em "Notificações" e permita\n';
-            message += '5. Volte aqui e tente novamente';
-        } else if (isAndroid) {
-            message += 'Para ativar notificações no Android:\n';
-            message += '1. Toque nos 3 pontos → "Configurações do site"\n';
-            message += '2. Toque em "Notificações"\n';
-            message += '3. Ative "Notificações do site"\n';
-            message += '4. Volte aqui e tente novamente';
+        if (isDenied) {
+            message += 'Você negou a permissão para notificações.\n\n';
         } else {
-            message += 'Para ativar notificações:\n';
-            message += '1. Verifique as configurações do seu navegador\n';
-            message += '2. Permita notificações para este site\n';
-            message += '3. Recarregue a página e tente novamente';
+            message += 'Para receber alertas sobre alimentos:\n\n';
+        }
+        
+        if (context.isMobile && context.isPWA) {
+            message += '📱 **App EcoMida (PWA):**\n';
+            message += '• Notificações devem funcionar automaticamente\n';
+            message += '• Verifique configurações do dispositivo se necessário';
+        } else if (context.isMobile) {
+            message += '📱 **Navegador Mobile:**\n';
+            message += '• Instale como app para melhor experiência\n';
+            message += '• Ou verifique configurações de notificação do site';
+        } else {
+            message += '💻 **Desktop:**\n';
+            message += '• Verifique o ícone de notificação na barra de endereços\n';
+            message += '• Permita notificações para este site';
         }
         
         alert(message);
     }
 
-}
-
-if (typeof window !== 'undefined') {
-    document.addEventListener('DOMContentLoaded', async () => {
-        console.log('🔔 Inicializando NotificationsSimple...');
+    showNotSupportedMessage() {
+        const context = this.getAppContext();
         
-        window.notificationsSimple = new NotificationsSimple();
+        let message = '🔔 Notificações\n\n';
         
-        try {
-            await window.notificationsSimple.setup();
-            console.log('✅ NotificationsSimple inicializado com sucesso');
-        } catch (error) {
-            console.error('❌ Erro na inicialização:', error);
+        if (context.isMobile && !context.isPWA) {
+            message += '📱 **No navegador mobile, as notificações podem ter limitações.**\n\n';
+            message += '💡 **Para melhor experiência:**\n';
+            message += '• Instale o EcoMida como app nativo\n';
+            message += '• Notificações funcionarão perfeitamente\n\n';
+            message += '🎯 **Como app nativo:**\n';
+            message += '• Alertas confiáveis sobre alimentos\n';
+            message += '• Acesso rápido da tela inicial\n';
+            message += '• Experiência otimizada';
+        } else {
+            message += 'Para notificações funcionarem:\n';
+            message += '• Use HTTPS (já está com Ngrok)\n';
+            message += '• Permita notificações no navegador\n';
+            message += '• Atualize seu navegador se necessário';
         }
         
-        if (window.authManager && window.authManager.isLoggedIn && window.authManager.isLoggedIn()) {
-            setTimeout(() => {
-                window.notificationsSimple.showAlertsInUI();
-            }, 3000);
-        }
-
-    });
+        alert(message);
+    }
 }
 
-if (typeof module !== 'undefined' && module.exports) {
-    module.exports = NotificationsSimple;
-}
-
+document.addEventListener('DOMContentLoaded', async () => {
+    console.log('🚀 Iniciando NotificationsSimple...');
+    window.notificationsSimple = new NotificationsSimple();
+    
+    const setupResult = await window.notificationsSimple.setup();
+    console.log('✅ Setup completo:', setupResult);
+    
+    if (window.authManager && window.authManager.isLoggedIn && window.authManager.isLoggedIn()) {
+        setTimeout(() => {
+            window.notificationsSimple.showAlertsInUI();
+        }, 3000); 
+    }
+    
+    console.log('✅ NotificationsSimple pronto!');
+});
