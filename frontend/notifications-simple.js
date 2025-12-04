@@ -257,58 +257,86 @@ Deseja tentar as notificações no navegador mesmo assim?
         }
         
         try {
-            const today = new Date();
+            console.log('🔥 showAutomaticNotification - alimentos recebidos:', expiringFoods);
+            
             const foodsByDays = {};
             
             expiringFoods.forEach(food => {
-                const expiryDate = new Date(food.expiry_date);
-                const daysUntil = Math.floor((expiryDate - today) / (1000 * 60 * 60 * 24));
+                // Usar days_until_expiry do backend (já corrigido)
+                const daysUntil = food.days_until_expiry;
+                
+                console.log(`🔥 ${food.name}:`, {
+                    days_until_expiry: daysUntil,
+                    expiry_message: food.expiry_message,
+                    expiry_date: food.expiry_date
+                });
                 
                 if (!foodsByDays[daysUntil]) {
                     foodsByDays[daysUntil] = [];
                 }
-                foodsByDays[daysUntil].push(food.name);
+                
+                foodsByDays[daysUntil].push({
+                    name: food.name,
+                    message: food.expiry_message,
+                    days: daysUntil,
+                    expiry_date: food.expiry_date,
+                    full_object: food  
+                });
             });
+            
+            console.log('🔥 foodsByDays estrutura:', JSON.stringify(foodsByDays, null, 2));
             
             let message = '';
             let title = '🍎 EcoMida';
             let requireInteraction = true;
             
             if (foodsByDays[0] && foodsByDays[0].length > 0) {
-               
                 title = '⚠️ Atenção!';
                 if (foodsByDays[0].length === 1) {
-                    message = `${foodsByDays[0][0]} vence HOJE! Consuma ou descarte agora.`;
+                    
+                    message = `${foodsByDays[0][0].name} vence HOJE! Consuma ou descarte agora.`;
                 } else {
-                    const foodList = foodsByDays[0].slice(0, 3).join(', ');
+                  
+                    const foodNames = foodsByDays[0].slice(0, 3).map(f => f.name);
+                    const foodList = foodNames.join(', ');
                     const extra = foodsByDays[0].length > 3 ? ` e mais ${foodsByDays[0].length - 3} alimentos` : '';
                     message = `${foodList}${extra} vencem HOJE! Ação necessária.`;
                 }
-            } else if (foodsByDays[1] && foodsByDays[1].length > 0) {
-          
+            } 
+     
+            else if (foodsByDays[1] && foodsByDays[1].length > 0) {
                 title = '🔔 Alerta!';
                 if (foodsByDays[1].length === 1) {
-                    message = `${foodsByDays[1][0]} vence AMANHÃ! Planeje seu consumo.`;
+              
+                    message = `${foodsByDays[1][0].name} vence AMANHÃ! Planeje seu consumo.`;
                 } else {
-                    const foodList = foodsByDays[1].slice(0, 3).join(', ');
+                  
+                    const foodNames = foodsByDays[1].slice(0, 3).map(f => f.name);
+                    const foodList = foodNames.join(', ');
                     message = `${foodList} vencem amanhã! Verifique sua despensa.`;
                 }
-            } else if (foodsByDays[2] && foodsByDays[2].length > 0) {
-           
+            } 
+        
+            else if (foodsByDays[2] && foodsByDays[2].length > 0) {
                 title = '📅 Lembrete';
                 if (foodsByDays[2].length === 1) {
-                    message = `${foodsByDays[2][0]} vence em 2 dias.`;
+              
+                    message = `${foodsByDays[2][0].name} vence em 2 dias.`;
                 } else {
+                
                     message = `${foodsByDays[2].length} alimentos vencem em 2 dias.`;
                 }
                 requireInteraction = false;
-            } else {
-                
+            } 
+
+            else {
                 for (const [days, foods] of Object.entries(foodsByDays)) {
-                    if (parseInt(days) <= 7) {
+                    const daysInt = parseInt(days);
+                    if (daysInt >= 3 && daysInt <= 7) {
                         title = '🍽️ Aviso';
                         if (foods.length === 1) {
-                            message = `${foods[0]} vence em ${days} dias.`;
+                    
+                            message = `${foods[0].name} vence em ${days} dias.`;
                         } else {
                             message = `${foods.length} alimentos vencem em ${days} dias.`;
                         }
@@ -319,6 +347,8 @@ Deseja tentar as notificações no navegador mesmo assim?
             }
             
             if (message) {
+                console.log('🔥 Mensagem final da notificação:', message);
+                
                 const options = {
                     body: message,
                     icon: '/images/ecomida192.png',
@@ -350,7 +380,13 @@ Deseja tentar as notificações no navegador mesmo assim?
                 }, autoCloseTime);
 
                 this.lastNotificationTime = now;
-                console.log('✅ Notificação automática enviada:', { title, message });
+                console.log('✅ Notificação automática enviada:', { 
+                    title, 
+                    message,
+                    foodsByDays: foodsByDays 
+                });
+            } else {
+                console.log('ℹ️ Nenhuma mensagem gerada para notificação');
             }
             
         } catch (error) {
