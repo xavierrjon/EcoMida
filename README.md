@@ -1,0 +1,92 @@
+﻿# 🍎 EcoMida - Gerenciador Inteligente de Alimentos
+Sistema completo para gerenciamento de alimentos com alertas de validade e dicas de armazenamento. Combate o desperdício alimentar através de uma experiência intuitiva e notificações inteligentes.
+
+## 👥 Equipe
+
+| Função      | Nome                | Responsabilidade          |
+|-------------|---------------------|----------------------------|
+| Dev 1       | Johnny Xavier       | Backend                    |
+| Dev 2       | Raíssa Martins      | Frontend                   |
+| Revisor 1   | Emelly Cristina     | Revisão Backend            |
+| Revisor 2   | Nathalya Christine  | Revisão Frontend           |
+| Revisor 3   | Rhanna Karoline     | Revisão Geral              |
+
+## 🚀 Funcionalidades Principais
+
+### 🔐 Autenticação & Perfil
+- **Registro e Login** seguro com JWT
+- **Perfil personalizável** com edição de dados
+- **Alteração de senha** com validações
+- **Logout seguro** com confirmação
+
+### 🍎 Gerenciamento de Alimentos
+- **Cadastro completo**: nome, quantidade, validade, categoria
+- **Controle de status**: ativos, consumidos, descartados
+- **Cálculo automático** de dias até o vencimento
+- **Filtros inteligentes** por categoria e status
+- **Edição e exclusão** de alimentos
+
+### 💡 Sistema de Dicas
+- **Catálogo organizado** por categorias de alimentos
+- **Dicas especializadas** de armazenamento
+- **Sistema de favoritos**
+- **7 categorias**: Laticínios, Frutas, Verduras, Carnes, Grãos, Bebidas, Outros
+
+### 🔔 Notificações Inteligentes
+- **Alertas automáticos** de alimentos próximos do vencimento
+- **Sistema de urgência** com 4 níveis:
+  - 🔴 **HOJE** - Urgente: "Consuma ou descarte agora"
+  - 🟡 **AMANHÃ** - Alerta: "Planeje seu consumo"
+  - 🟠 **2 DIAS** - Lembrete: "Verifique sua despensa"
+  - 🔵 **3-7 DIAS** - Informativo: "Organize seu consumo"
+- **Configurações personalizáveis** por usuário
+- **Horário silencioso** configurável
+- **Badges visuais** com contador de alertas
+
+### 📱 Experiência Mobile
+- **PWA (Progressive Web App)** instalável
+- **Design responsivo** mobile-first
+- **Interface touch-friendly**
+
+## 🛠 Tecnologias Utilizadas
+
+### 🛠️ Backend
+
+| Tecnologia             | Descrição                           |
+|------------------------|--------------------------------------|
+| Python 3.9+            | Linguagem principal                  |
+| Flask                  | Framework web                        |
+| Flask-JWT-Extended     | Autenticação JWT                     |
+| Flask-SQLAlchemy       | ORM para banco de dados              |
+| Flask-CORS             | Controle de requisições              |
+| Flask-Bcrypt           | Criptografia de senhas               |
+
+### 🎨 Frontend
+
+| Tecnologia        | Descrição                    |
+|-------------------|-------------------------------|
+| HTML5             | Estrutura semântica          |
+| CSS3              | Estilização responsiva       |
+| JavaScript ES6+   | Lógica da aplicação          |
+| Material Icons    | Interface visual             |
+| Service Workers   | Funcionalidades PWA          |
+
+### 🗄️ Banco de Dados
+
+| Tecnologia   | Descrição                    |
+|--------------|-------------------------------|
+| SQLite       | Banco no desenvolvimento      |
+| SQLAlchemy   | ORM e gestão de modelos       |
+
+### 🔧 Ferramentas & Infra
+
+| Ferramenta | Descrição                       |
+|------------|----------------------------------|
+| Ngrok      | Tunneling para testes mobile     |
+| Git        | Controle de versão               |
+
+
+## 👥 Desenvolvimento
+
+**Disciplina**: Engenharia de Software 2  
+**Objetivo**: Combater o desperdício alimentar através da tecnologia 
