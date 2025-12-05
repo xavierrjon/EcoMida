@@ -104,8 +104,13 @@ class FoodsManager {
                         <span class="info-label">Validade</span>
                         <span class="info-value ${expiryStatus}">
                             ${activeTab === 'active' 
-                                ? this.formatExpiryDate(food.expiry_date, food.days_until_expiry)
-                                : new Date(food.expiry_date).toLocaleDateString('pt-BR')
+                                ? this.formatExpiryDate(
+                                    food.expiry_date, 
+                                    food.days_until_expiry,
+                                    food.expiry_message,
+                                    food.expiry_date_display  // ← NOVO: passar campo display
+                                )
+                                : (food.expiry_date_display || new Date(food.expiry_date).toLocaleDateString('pt-BR'))
                             }
                         </span>
                     </div>
@@ -460,25 +465,92 @@ class FoodsManager {
         return `${formattedQuantity} ${shortUnit}`;
     }
 
-    formatExpiryDate(dateString, daysUntilExpiry = null) {
-        const options = { day: '2-digit', month: '2-digit', year: 'numeric' };
-        const date = new Date(dateString);
+    formatExpiryDate(dateString, daysUntilExpiry = null, expiryMessage = null, expiryDateDisplay = null) {
+        console.log('🔥 formatExpiryDate recebeu:', { 
+            dateString, 
+            daysUntilExpiry, 
+            expiryMessage,
+            expiryDateDisplay,
+            'tipo expiryMessage': typeof expiryMessage,
+            'tipo expiryDateDisplay': typeof expiryDateDisplay
+        });
+        
+        if (expiryDateDisplay && typeof expiryDateDisplay === 'string') {
+            console.log('🔥 Usando expiry_date_display do backend:', expiryDateDisplay);
+            
+            if (expiryMessage && typeof expiryMessage === 'string') {
+                return `${expiryDateDisplay} ${expiryMessage}`;
+            }
+            
+            if (daysUntilExpiry !== null && daysUntilExpiry !== undefined) {
+                return `${expiryDateDisplay} ${this.getExpiryMessageFromDays(daysUntilExpiry)}`;
+            }
+            
+            const days = this.calculateDaysUntilExpiryLocal(new Date(dateString));
+            return `${expiryDateDisplay} ${this.getExpiryMessageFromDays(days)}`;
+        }
+        
+        const formattedDate = this.formatDateBrazilian(dateString);
+        console.log('🔥 Data formatada localmente:', formattedDate);
+        
+        if (expiryMessage && typeof expiryMessage === 'string') {
+            console.log('🔥 Usando expiry_message do backend:', expiryMessage);
+            return `${formattedDate} ${expiryMessage}`;
+        }
         
         let days = daysUntilExpiry;
         if (days === null || days === undefined) {
-            const today = new Date();
-            const diffTime = date - today;
-            days = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+            days = this.calculateDaysUntilExpiryLocal(new Date(dateString));
         }
+        
+        return `${formattedDate} ${this.getExpiryMessageFromDays(days)}`;
+    }
 
-        let statusText = '';
-        if (days < 0) statusText = ' (Vencido)';
-        else if (days === 0) statusText = ' (Vence hoje!)';
-        else if (days === 1) statusText = ' (Vence amanhã!)';
-        else if (days <= 3) statusText = ` (Vence em ${days} dias)`;
-        else statusText = ` (Vence em ${days} dias)`;
+    formatDateBrazilian(dateString) {
+        if (!dateString) return '';
+        
+        console.log('🔥 formatDateBrazilian chamado com:', dateString);
+        
+        try {
+       
+            const date = new Date(dateString);
+            
+            const day = date.getUTCDate();
+            const month = date.getUTCMonth() + 1;
+            const year = date.getUTCFullYear();
+            
+            return `${day.toString().padStart(2, '0')}/${month.toString().padStart(2, '0')}/${year}`;
+        } catch (error) {
+            console.error('❌ Erro ao formatar data:', error);
+            return dateString; 
+        }
+    }
 
-        return date.toLocaleDateString('pt-BR', options) + statusText;
+    getExpiryMessageFromDays(days) {
+        if (days < 0) {
+            return `(Vencido há ${Math.abs(days)} dias)`;
+        } else if (days === 0) {
+            return '(Vence hoje!)';
+        } else if (days === 1) {
+            return '(Vence amanhã!)';
+        } else if (days === 2) {
+            return '(Vence depois de amanhã!)';
+        } else if (days <= 7) {
+            return `(Vence em ${days} dias)`;
+        } else {
+            return `(Vence em ${days} dias)`;
+        }
+    }
+
+    calculateDaysUntilExpiryLocal(expiryDate) {
+        const today = new Date();
+        const expiry = new Date(expiryDate);
+        
+        today.setHours(0, 0, 0, 0);
+        expiry.setHours(0, 0, 0, 0);
+        
+        const diffMs = expiry - today;
+        return Math.round(diffMs / (1000 * 60 * 60 * 24));
     }
 
     getExpiryStatus(expiryDate) {

@@ -31,14 +31,21 @@ def get_expiring_foods():
         
         notifications = []
         for food in expiring_foods:
-            days_until = (food.expiry_date - today).days
-            notifications.append({
-                'id': food.id,
-                'name': food.name,
-                'expiry_date': food.expiry_date.isoformat(),
-                'days_until': days_until,
-                'category': food.food_type
+    
+            food_dict = food.to_dict()
+            
+            # DEBUG: Verificar se tem os campos
+            print(f"🔥 {food.name}: to_dict() retornou:", {
+                'tem_expiry_message': 'expiry_message' in food_dict,
+                'tem_days_until_expiry': 'days_until_expiry' in food_dict,
+                'tem_expiry_date_display': 'expiry_date_display' in food_dict,
+                'days_until_expiry_valor': food_dict.get('days_until_expiry'),
+                'expiry_message_valor': food_dict.get('expiry_message')
             })
+            
+            notifications.append(food_dict)
+        
+        print(f"🔥 Total de notificações: {len(notifications)}")
         
         return jsonify({
             "notifications": notifications,
@@ -50,6 +57,7 @@ def get_expiring_foods():
         }), 200
         
     except Exception as e:
+        print(f"❌ Erro em /notifications/expiring: {str(e)}")
         return jsonify({"error": f"Erro interno: {str(e)}"}), 500
 
 @notifications_bp.route('/settings', methods=['GET'])
