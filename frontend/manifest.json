@@ -1,0 +1,17 @@
+{
+  "name": "EcoMida",
+  "short_name": "EcoMida",
+  "description": "Gerencie a validade dos seus alimentos e receba dicas de armazenamento",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#ffffff",
+  "theme_color": "#4CAF50",
+  "orientation": "portrait",
+  "icons": [
+    {
+      "src": "/EcoMida/frontend/images/ecomida192.png",
+      "sizes": "192x192",
+      "type": "image/png"
+    }
+  ]
+}
