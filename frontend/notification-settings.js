@@ -433,12 +433,63 @@ class NotificationSettings {
     }
 }
 
-document.addEventListener('DOMContentLoaded', async () => {
+function initializeNotificationSettings() {
+    console.log('⚙️ Inicializando NotificationSettings (sincronizado)...');
+    
+    // Criar instância
     window.notificationSettings = new NotificationSettings();
     
-    if (window.authManager && window.authManager.isLoggedIn && window.authManager.isLoggedIn()) {
-        await window.notificationSettings.init();
-    }
+    // Função para inicializar quando apropriado
+    const initializeWhenReady = async () => {
+        console.log('⏳ Aguardando condições para inicializar settings...');
+        
+        // Esperar por authManager
+        if (!window.authManager) {
+            console.log('⏳ AuthManager não disponível, aguardando...');
+            setTimeout(initializeWhenReady, 100);
+            return;
+        }
+        
+        // Só inicializar se estiver logado
+        if (window.authManager.isLoggedIn && window.authManager.isLoggedIn()) {
+            console.log('👤 Usuário logado, inicializando settings...');
+            try {
+                await window.notificationSettings.init();
+                console.log('✅ NotificationSettings inicializado com sucesso!');
+            } catch (error) {
+                console.error('❌ Erro ao inicializar settings:', error);
+            }
+        } else {
+            console.log('👤 Usuário não logado, settings não inicializados');
+        }
+    };
     
-    console.log('✅ NotificationSettings pronto!');
+    // Iniciar a verificação
+    setTimeout(initializeWhenReady, 1000); // Delay maior para garantir
+}
+
+// Inicializar de forma controlada
+document.addEventListener('DOMContentLoaded', () => {
+    console.log('📄 DOM carregado, agendando settings...');
+    setTimeout(initializeNotificationSettings, 800); // Atraso estratégico
+});
+
+// Escutar evento app-ready
+window.addEventListener('app-ready', () => {
+    console.log('🎉 Evento app-ready recebido no settings');
+    
+    if (window.notificationSettings && !window.notificationSettings.isInitialized) {
+        console.log('🔄 Tentando inicializar settings após app-ready');
+        
+        setTimeout(async () => {
+            if (window.authManager && window.authManager.isLoggedIn && 
+                window.authManager.isLoggedIn() && window.notificationSettings.init) {
+                try {
+                    await window.notificationSettings.init();
+                } catch (error) {
+                    console.error('❌ Erro na inicialização tardia:', error);
+                }
+            }
+        }, 1500);
+    }
 });
