@@ -1,23 +1,41 @@
-console.log('🔔 Service Worker carregado - Versão 2.0');
+console.log('🔄 Service Worker carregando... PWA:',
+    window.matchMedia('(display-mode: standalone)').matches);
+
+// Verificar se estamos em PWA
+const isPWA = window.matchMedia('(display-mode: standalone)').matches ||
+    ('standalone' in navigator && navigator.standalone);
+
+if (isPWA) {
+    console.log('📱 Modo PWA detectado, ajustando comportamento...');
+
+    // Forçar reload dos scripts importantes no PWA
+    if ('serviceWorker' in navigator) {
+        navigator.serviceWorker.getRegistrations().then(registrations => {
+            registrations.forEach(registration => {
+                registration.update(); // Forçar atualização
+            });
+        });
+    }
+}
 
 self.addEventListener('install', (event) => {
     console.log('✅ Service Worker instalado');
-    self.skipWaiting(); 
+    self.skipWaiting();
 });
 
 self.addEventListener('activate', (event) => {
     console.log('🔄 Service Worker ativado');
-    event.waitUntil(self.clients.claim()); 
+    event.waitUntil(self.clients.claim());
 });
 
 self.addEventListener('push', (event) => {
     console.log('📢 Push event recebido:', event);
-    
+
     if (!event.data) {
         console.log('❌ Push sem dados');
         return;
     }
-    
+
     let data;
     try {
         data = event.data.json();
@@ -29,7 +47,7 @@ self.addEventListener('push', (event) => {
             body: 'Alerta de alimento próximo do vencimento'
         };
     }
-    
+
     const options = {
         body: data.body || 'Alerta de alimento próximo do vencimento',
         icon: '/images/ecomida192.png',
@@ -48,9 +66,9 @@ self.addEventListener('push', (event) => {
                 icon: '/images/ecomida192.png'
             }
         ],
-        data: data 
+        data: data
     };
-    
+
     event.waitUntil(
         self.registration.showNotification(data.title || 'EcoMida', options)
     );
@@ -59,7 +77,7 @@ self.addEventListener('push', (event) => {
 self.addEventListener('notificationclick', (event) => {
     console.log('🖱️ Notificação clicada:', event.action);
     event.notification.close();
-    
+
     if (event.action === 'view') {
         event.waitUntil(
             clients.matchAll({ type: 'window' }).then(clientList => {
@@ -74,7 +92,7 @@ self.addEventListener('notificationclick', (event) => {
             })
         );
     } else if (event.action === 'dismiss') {
-      
+
         console.log('❌ Notificação descartada');
     } else {
         event.waitUntil(
@@ -97,9 +115,9 @@ self.addEventListener('message', (event) => {
 
 self.addEventListener('push', (event) => {
     console.log('📱 Push event no mobile:', event);
-    
+
     const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
-    
+
     let data;
     try {
         data = event.data.json();
@@ -109,18 +127,18 @@ self.addEventListener('push', (event) => {
             body: 'Alerta: Alimento próximo do vencimento'
         };
     }
-    
+
     const options = {
         body: data.body || 'Alerta de alimento próximo do vencimento',
         icon: '/images/ecomida192.png',
         badge: '/images/ecomida192.png',
         tag: 'food-alert',
-        requireInteraction: false, 
+        requireInteraction: false,
         data: data
     };
-    
+
     if (isMobile) {
-        options.actions = []; 
+        options.actions = [];
     } else {
         options.actions = [
             {
@@ -131,7 +149,7 @@ self.addEventListener('push', (event) => {
         ];
         options.requireInteraction = true;
     }
-    
+
     event.waitUntil(
         self.registration.showNotification(data.title || 'EcoMida', options)
     );
