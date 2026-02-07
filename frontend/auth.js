@@ -4,8 +4,6 @@ class AuthManager {
         this.user = null;
         this.baseURL = `${window.location.origin}/api`;
         this.init();
-
-        console.log('🔗 AuthManager iniciado com URL:', this.baseURL);
     }
 
     init() {
@@ -20,16 +18,13 @@ class AuthManager {
             this.user = JSON.parse(userData);
         }
 
-        if (this.token && this.user) {
-        } else {
+        if (!this.token || !this.user) {
             this.clearAuth();
         }
     }
 
     async login(email, password) {
         try {
-            console.log('🔗 Tentando login em:', `${this.baseURL}/auth/login`);
-            
             const response = await fetch(`${this.baseURL}/auth/login`, {
                 method: 'POST',
                 headers: { 
@@ -38,8 +33,6 @@ class AuthManager {
                 },
                 body: JSON.stringify({ email, password })
             });
-
-            console.log('📡 Status do login:', response.status);
             
             const data = await response.json();
 
@@ -53,15 +46,12 @@ class AuthManager {
                 return { success: false, error: data.error };
             }
         } catch (error) {
-            console.error('❌ Erro de conexão no login:', error);
             return { success: false, error: 'Erro de conexão com o servidor' };
         }
     }
 
     async register(username, email, password) {
         try {
-            console.log('🔗 Tentando registro em:', `${this.baseURL}/auth/register`);
-            
             const response = await fetch(`${this.baseURL}/auth/register`, {
                 method: 'POST',
                 headers: { 
@@ -70,8 +60,6 @@ class AuthManager {
                 },
                 body: JSON.stringify({ username, email, password })
             });
-
-            console.log('📡 Status do registro:', response.status);
             
             const data = await response.json();
 
@@ -81,7 +69,6 @@ class AuthManager {
                 return { success: false, error: data.error };
             }
         } catch (error) {
-            console.error('❌ Erro de conexão no registro:', error);
             return { success: false, error: 'Erro de conexão com o servidor' };
         }
     }

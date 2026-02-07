@@ -240,11 +240,6 @@ if __name__ == '__main__':
     app = create_app()
     
     print("🚀 EcoMida Full-Stack com Ngrok iniciando...")
-    print("📱 App disponível em: http://localhost:5000")
-    print("🌐 Ngrok URL: https://SEU-SUBDOMINIO.ngrok.io")
-    print("🔧 API disponível em: http://localhost:5000/api")
-    print("🔍 Health check: http://localhost:5000/api/health")
-    print("🔍 Teste CORS: http://localhost:5000/api/test-cors")
     print("")
     print("⚠️  Para usar com Ngrok:")
     print("1. Rode: ngrok http 5000")
