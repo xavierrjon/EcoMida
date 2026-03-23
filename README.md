@@ -105,15 +105,17 @@ A interface foi projetada com foco em **usabilidade e acessibilidade**:
 - Navegador moderno (Chrome 70+, Firefox 65+, Edge 79+)
 - Git (para controle de versão)
 
-## 📦 Como Rodar Localmente
+## 📦 Como Rodar o EcoMida com Acesso Remoto (Ngrok)
 
 ### **1. Clone o repositório:**
+
 ```bash
 git clone https://github.com/xavierrjon/EcoMida.git
 cd EcoMida
 ```
 
 ### **2. Configure o ambiente virtual:**
+
 ```bash
 # Windows
 python -m venv venv
@@ -125,29 +127,40 @@ source venv/bin/activate
 ```
 
 ### **3. Instale as dependências:**
+
 ```bash
 pip install -r backend/requirements.txt
 ```
 
-### **4. Execute o servidor backend:**
+### **4. Execute o servidor backend Flask:**
+
 ```bash
 cd backend
 python app.py
 ```
 
-O backend Flask estará rodando em: **http://localhost:5000**
-
 ### **5. Execute o frontend PWA:**
-Abra o arquivo `frontend/index.html` diretamente no navegador ou use um servidor simples:
 
 ```bash
 # Na pasta frontend, execute:
 python -m http.server 8080
 ```
 
-### **6. Acesse a aplicação:**
-- **Frontend PWA:** http://localhost:8080
-- **Backend API:** http://localhost:5000
+### **5. Acesse usando Ngrok:**
+
+1. Baixe e instale o [Ngrok](https://ngrok.com/).
+
+2. No terminal, execute:
+
+```bash
+ngrok http 5000
+```
+
+3. Acesse a URL pública HTTPS gerada pelo Ngrok, algo como:
+
+```
+https://abcdef1234.ngrok.io
+```
 
 ## 📊 Diferenciais do EcoMida
 

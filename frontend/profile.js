@@ -1,11 +1,9 @@
-// profile.js - VERSÃO ATUALIZADA
-console.log('👤 ProfileManager carregando...');
+// profile.js - VERSAO ATUALIZADA
 
 class ProfileManager {
     constructor() {
         this.baseURL = `${window.location.origin}/api`;
         this.currentProfile = null;
-        console.log('✅ ProfileManager inicializado');
     }
 
     // 📥 CARREGAR PERFIL
@@ -13,7 +11,6 @@ class ProfileManager {
         try {
             const token = window.authManager?.getToken();
             if (!token) {
-                console.log('🔐 Usuário não autenticado');
                 return null;
             }
 
@@ -27,7 +24,6 @@ class ProfileManager {
             if (response.ok) {
                 const data = await response.json();
                 this.currentProfile = data.profile;
-                console.log('✅ Perfil carregado:', this.currentProfile);
                 return this.currentProfile;
             } else {
                 throw new Error('Erro ao carregar perfil');
@@ -45,8 +41,6 @@ class ProfileManager {
             if (!token) {
                 throw new Error('Usuário não autenticado');
             }
-
-            console.log('💾 Atualizando perfil:', profileData);
 
             const response = await fetch(`${this.baseURL}/auth/profile`, {
                 method: 'PUT',
@@ -69,7 +63,6 @@ class ProfileManager {
                     localStorage.setItem('user_data', JSON.stringify(data.profile));
                 }
                 
-                console.log('✅ Perfil atualizado:', this.currentProfile);
                 return { success: true, profile: data.profile };
             } else {
                 return { success: false, error: data.error };
@@ -88,8 +81,6 @@ class ProfileManager {
                 throw new Error('Usuário não autenticado');
             }
 
-            console.log('🔐 Alterando senha...');
-
             const response = await fetch(`${this.baseURL}/auth/change-password`, {
                 method: 'POST',
                 headers: {
@@ -106,7 +97,6 @@ class ProfileManager {
             const data = await response.json();
 
             if (response.ok) {
-                console.log('✅ Senha alterada com sucesso');
                 return { success: true, message: data.message };
             } else {
                 return { success: false, error: data.error };
@@ -144,8 +134,6 @@ class ProfileManager {
                 window.app.updateHeaderVisibility(false);
             }
             
-            console.log('✅ Logout realizado com sucesso');
-            
         } catch (error) {
             console.error('❌ Erro no logout:', error);
             // Fallback: limpar dados mesmo com erro
@@ -166,7 +154,6 @@ class ProfileManager {
         let profileScreen = document.getElementById('profile-screen');
         
         if (!profileScreen) {
-            console.log('🖼️ Criando tela de perfil no DOM...');
             profileScreen = document.createElement('section');
             profileScreen.id = 'profile-screen';
             profileScreen.className = 'screen';
@@ -175,15 +162,12 @@ class ProfileManager {
             const mainContent = document.querySelector('.main-content');
             if (mainContent) {
                 mainContent.appendChild(profileScreen);
-                console.log('✅ Tela de perfil adicionada ao DOM');
             } else {
                 console.error('❌ main-content não encontrado');
                 document.body.appendChild(profileScreen);
             }
             
             this.attachProfileEvents();
-        } else {
-            console.log('✅ Tela de perfil já existe no DOM');
         }
         
         return profileScreen;
@@ -276,8 +260,6 @@ class ProfileManager {
 
     // 🔄 ATUALIZAR FORMULÁRIO COM DADOS ATUAIS
     async updateProfileForm() {
-        console.log('🔄 Atualizando formulário de perfil...');
-        
         await this.loadProfile();
         
         if (!this.currentProfile) {
@@ -313,7 +295,6 @@ class ProfileManager {
         // Atualizar estatísticas
         this.updateStats();
         
-        console.log('✅ Formulário de perfil atualizado');
     }
 
     // 👆 ADICIONAR EVENTOS
@@ -428,8 +409,6 @@ class ProfileManager {
 
     // 📱 MOSTRAR PERFIL
     showProfile() {
-        console.log('📱 Mostrando tela de perfil...');
-        
         // 🔥 GARANTIR que a tela existe
         const profileScreen = this.createProfileScreen();
         
@@ -449,7 +428,6 @@ class ProfileManager {
         // 🔥 ATUALIZAR os dados
         this.updateProfileForm();
         
-        console.log('✅ Tela de perfil mostrada');
     }
 
     // 📱 OCULTAR PERFIL
@@ -461,8 +439,6 @@ class ProfileManager {
     // 🔒 INICIALIZAÇÃO SEGURA
     async safeInit() {
         try {
-            console.log('🔒 Inicialização segura do ProfileManager...');
-            
             // Aguardar o DOM estar pronto
             if (document.readyState === 'loading') {
                 await new Promise(resolve => {
@@ -473,7 +449,6 @@ class ProfileManager {
             // Criar a tela imediatamente
             this.createProfileScreen();
             
-            console.log('✅ ProfileManager inicializado com segurança');
         } catch (error) {
             console.error('❌ Erro na inicialização segura:', error);
         }
@@ -482,11 +457,9 @@ class ProfileManager {
 
 // Inicialização automática
 document.addEventListener('DOMContentLoaded', async () => {
-    console.log('👤 Inicializando ProfileManager...');
     window.profileManager = new ProfileManager();
     
     // Inicialização segura
     await window.profileManager.safeInit();
     
-    console.log('✅ ProfileManager pronto!');
 });

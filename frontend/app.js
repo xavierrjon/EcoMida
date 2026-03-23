@@ -389,7 +389,7 @@ class EcoMidaApp {
                             }, 2000);
                         }
                     } catch (error) {
-                        console.log('⚠️ Notificações carregadas em background com erro:', error);
+                        console.warn('Notificacoes carregadas em background com erro:', error);
                     }
                 }, 1000);
             }
