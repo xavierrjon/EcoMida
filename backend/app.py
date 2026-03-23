@@ -72,7 +72,7 @@ def create_app():
     
     with app.app_context():
         db.create_all()
-        print("✅ Tabelas do banco criadas com sucesso!")
+        app.logger.info("Tabelas do banco criadas com sucesso")
         
         if Tip.query.count() == 0:
             default_tips = [
@@ -197,7 +197,7 @@ def create_app():
             
             db.session.bulk_save_objects(default_tips)
             db.session.commit()
-            print(f"✅ {len(default_tips)} dicas padrão adicionadas!")
+            app.logger.info("%s dicas padrao adicionadas", len(default_tips))
     
     @app.route('/api/health', methods=['GET'])
     def health_check():
@@ -226,8 +226,7 @@ def create_app():
     @app.errorhandler(500)
     def internal_error(error):
         error_traceback = traceback.format_exc()
-        print("❌ ERRO 500 DETALHADO:")
-        print(error_traceback)
+        app.logger.error("Erro 500 detalhado: %s", error_traceback)
         return jsonify({"error": "Erro interno do servidor"}), 500
     
     return app
@@ -238,12 +237,5 @@ def create_app():
 
 if __name__ == '__main__':
     app = create_app()
-    
-    print("🚀 EcoMida Full-Stack com Ngrok iniciando...")
-    print("")
-    print("⚠️  Para usar com Ngrok:")
-    print("1. Rode: ngrok http 5000")
-    print("2. Acesse a URL do Ngrok no celular")
-    print("")
-    
+
     app.run(debug=True, host='0.0.0.0', port=5000)

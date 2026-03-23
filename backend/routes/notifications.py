@@ -2,7 +2,6 @@ from flask import Blueprint, jsonify, request
 from flask_jwt_extended import jwt_required, get_jwt_identity
 from datetime import datetime, timedelta
 from models.user import User, db
-from models.user import User
 from models.food import Food
 
 notifications_bp = Blueprint('notifications_api', __name__) 
@@ -31,22 +30,9 @@ def get_expiring_foods():
         
         notifications = []
         for food in expiring_foods:
-    
             food_dict = food.to_dict()
-            
-            # DEBUG: Verificar se tem os campos
-            print(f"🔥 {food.name}: to_dict() retornou:", {
-                'tem_expiry_message': 'expiry_message' in food_dict,
-                'tem_days_until_expiry': 'days_until_expiry' in food_dict,
-                'tem_expiry_date_display': 'expiry_date_display' in food_dict,
-                'days_until_expiry_valor': food_dict.get('days_until_expiry'),
-                'expiry_message_valor': food_dict.get('expiry_message')
-            })
-            
             notifications.append(food_dict)
-        
-        print(f"🔥 Total de notificações: {len(notifications)}")
-        
+
         return jsonify({
             "notifications": notifications,
             "settings": {
@@ -57,7 +43,6 @@ def get_expiring_foods():
         }), 200
         
     except Exception as e:
-        print(f"❌ Erro em /notifications/expiring: {str(e)}")
         return jsonify({"error": f"Erro interno: {str(e)}"}), 500
 
 @notifications_bp.route('/settings', methods=['GET'])
