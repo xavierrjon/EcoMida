@@ -12,25 +12,18 @@ class AppInitializer {
     }
     
     init() {
-        console.log('🔧 Inicializando módulos na ordem correta...');
-        
         this.waitForModule('auth', () => window.authManager).then(() => {
-            console.log('✅ AuthManager pronto');
-            
             this.initializeApp();
         });
     }
     
     waitForModule(moduleName, checkFunction, timeout = 5000) {
         return new Promise((resolve, reject) => {
-            console.log(`⏳ Aguardando ${moduleName}...`);
-            
             const startTime = Date.now();
             
             const check = () => {
                 if (checkFunction()) {
                     this.modules[moduleName] = true;
-                    console.log(`✅ ${moduleName} carregado`);
                     resolve();
                     return;
                 }
@@ -50,7 +43,6 @@ class AppInitializer {
     
     initializeApp() {
         if (!window.app) {
-            console.log('🚀 Inicializando EcoMidaApp...');
             window.app = new EcoMidaApp();
             this.modules.app = true;
         }
@@ -58,8 +50,6 @@ class AppInitializer {
         setTimeout(() => {
             if (window.authManager && window.authManager.isLoggedIn && 
                 window.authManager.isLoggedIn()) {
-                console.log('👤 Usuário logado, inicializando módulos adicionais...');
-                
                 this.initializeNotificationModules();
             }
         }, 1000);
@@ -68,17 +58,13 @@ class AppInitializer {
     initializeNotificationModules() {
        
         setTimeout(() => {
-            console.log('🔔 Inicializando módulos de notificação...');
-            
             if (window.notificationsSimple && !window.notificationsSimple.isInitialized) {
-                console.log('🔄 Forçando inicialização do NotificationsSimple');
                 window.notificationsSimple.setup().then(() => {
                     window.notificationsSimple.showAlertsInUI();
                 });
             }
             
             if (window.notificationSettings && !window.notificationSettings.isInitialized) {
-                console.log('🔄 Forçando inicialização do NotificationSettings');
                 window.notificationSettings.init();
             }
             
@@ -88,8 +74,6 @@ class AppInitializer {
 }
 
 document.addEventListener('DOMContentLoaded', () => {
-    console.log('📄 DOM carregado, iniciando inicializador...');
-    
     setTimeout(() => {
         window.appInitializer = new AppInitializer();
     }, 300);

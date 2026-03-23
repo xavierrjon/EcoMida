@@ -1,13 +1,8 @@
-console.log('🔄 Service Worker carregando... PWA:',
-    window.matchMedia('(display-mode: standalone)').matches);
-
 // Verificar se estamos em PWA
 const isPWA = window.matchMedia('(display-mode: standalone)').matches ||
     ('standalone' in navigator && navigator.standalone);
 
 if (isPWA) {
-    console.log('📱 Modo PWA detectado, ajustando comportamento...');
-
     // Forçar reload dos scripts importantes no PWA
     if ('serviceWorker' in navigator) {
         navigator.serviceWorker.getRegistrations().then(registrations => {
@@ -19,29 +14,22 @@ if (isPWA) {
 }
 
 self.addEventListener('install', (event) => {
-    console.log('✅ Service Worker instalado');
     self.skipWaiting();
 });
 
 self.addEventListener('activate', (event) => {
-    console.log('🔄 Service Worker ativado');
     event.waitUntil(self.clients.claim());
 });
 
 self.addEventListener('push', (event) => {
-    console.log('📢 Push event recebido:', event);
-
     if (!event.data) {
-        console.log('❌ Push sem dados');
         return;
     }
 
     let data;
     try {
         data = event.data.json();
-        console.log('📦 Dados da push:', data);
     } catch (error) {
-        console.log('❌ Erro ao parsear dados, usando padrão');
         data = {
             title: 'EcoMida',
             body: 'Alerta de alimento próximo do vencimento'
@@ -75,7 +63,6 @@ self.addEventListener('push', (event) => {
 });
 
 self.addEventListener('notificationclick', (event) => {
-    console.log('🖱️ Notificação clicada:', event.action);
     event.notification.close();
 
     if (event.action === 'view') {
@@ -92,19 +79,14 @@ self.addEventListener('notificationclick', (event) => {
             })
         );
     } else if (event.action === 'dismiss') {
-
-        console.log('❌ Notificação descartada');
     } else {
         event.waitUntil(
-            clients.openWindow('/').then(windowClient => {
-                console.log('📍 Aplicação aberta');
-            })
+            clients.openWindow('/')
         );
     }
 });
 
 self.addEventListener('message', (event) => {
-    console.log('📨 Mensagem do cliente:', event.data);
     if (event.data && event.data.type === 'TEST_NOTIFICATION') {
         self.registration.showNotification('EcoMida - Teste SW', {
             body: 'Teste do Service Worker funcionando!',
@@ -114,8 +96,6 @@ self.addEventListener('message', (event) => {
 });
 
 self.addEventListener('push', (event) => {
-    console.log('📱 Push event no mobile:', event);
-
     const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
 
     let data;

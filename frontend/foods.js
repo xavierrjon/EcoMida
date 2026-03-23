@@ -6,7 +6,6 @@ class FoodsManager {
     }
 
     init() {
-        console.log('🍎 FoodsManager inicializado com modal de edição');
         this.attachGlobalEvents();
     }
 
@@ -17,12 +16,10 @@ class FoodsManager {
         try {
             const token = window.authManager?.getToken();
             if (!token) {
-                console.log('❌ Token não encontrado');
                 this.showEmptyState();
                 return;
             }
 
-            console.log('🔗 Carregando alimentos...');
             const response = await fetch(`${this.baseURL}/foods`, {
                 headers: {
                     'Authorization': `Bearer ${token}`,
@@ -32,7 +29,6 @@ class FoodsManager {
 
             if (response.ok) {
                 const data = await response.json();
-                console.log('📦 Alimentos recebidos:', data.foods);
                 this.renderFoods(data.foods);
                 return data.foods;
             } else {
@@ -466,18 +462,7 @@ class FoodsManager {
     }
 
     formatExpiryDate(dateString, daysUntilExpiry = null, expiryMessage = null, expiryDateDisplay = null) {
-        console.log('🔥 formatExpiryDate recebeu:', { 
-            dateString, 
-            daysUntilExpiry, 
-            expiryMessage,
-            expiryDateDisplay,
-            'tipo expiryMessage': typeof expiryMessage,
-            'tipo expiryDateDisplay': typeof expiryDateDisplay
-        });
-        
         if (expiryDateDisplay && typeof expiryDateDisplay === 'string') {
-            console.log('🔥 Usando expiry_date_display do backend:', expiryDateDisplay);
-            
             if (expiryMessage && typeof expiryMessage === 'string') {
                 return `${expiryDateDisplay} ${expiryMessage}`;
             }
@@ -491,10 +476,8 @@ class FoodsManager {
         }
         
         const formattedDate = this.formatDateBrazilian(dateString);
-        console.log('🔥 Data formatada localmente:', formattedDate);
         
         if (expiryMessage && typeof expiryMessage === 'string') {
-            console.log('🔥 Usando expiry_message do backend:', expiryMessage);
             return `${formattedDate} ${expiryMessage}`;
         }
         
@@ -508,8 +491,6 @@ class FoodsManager {
 
     formatDateBrazilian(dateString) {
         if (!dateString) return '';
-        
-        console.log('🔥 formatDateBrazilian chamado com:', dateString);
         
         try {
        
@@ -627,5 +608,4 @@ class FoodsManager {
 
 document.addEventListener('DOMContentLoaded', () => {
     window.foodsManager = new FoodsManager();
-    console.log('🍎 FoodsManager carregado com modal de edição');
 });

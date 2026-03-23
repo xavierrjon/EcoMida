@@ -7,14 +7,12 @@ class TipsManager {
     }
 
     init() {
-        console.log('💡 TipsManager inicializado');
         this.loadFavorites();
         this.attachTipEvents();
     }
 
     async loadTips() {
         try {
-            console.log('🔗 Carregando dicas...');
             const response = await fetch(`${this.baseURL}/tips`, {
                 headers: {
                     'ngrok-skip-browser-warning': 'true'
@@ -23,7 +21,6 @@ class TipsManager {
 
             if (response.ok) {
                 const data = await response.json();
-                console.log('📚 Dicas recebidas:', data.tips);
                 this.renderTips(data.tips);
                 return data.tips;
             } else {
@@ -217,20 +214,14 @@ class TipsManager {
 
     async loadTips() {
         try {
-            console.log('🔗 Carregando dicas de:', `${this.baseURL}/tips`);
-            
             const response = await fetch(`${this.baseURL}/tips`, {
                 headers: {
                     'ngrok-skip-browser-warning': 'true'
                 }
             });
 
-            console.log('📡 Status da resposta:', response.status);
-            console.log('📡 Headers:', response.headers);
-
             if (response.ok) {
                 const data = await response.json();
-                console.log('📚 Dicas recebidas:', data);
                 this.renderTips(data.tips || data); 
                 return data.tips || data;
             } else {
@@ -338,5 +329,4 @@ class TipsManager {
 
 document.addEventListener('DOMContentLoaded', () => {
     window.tipsManager = new TipsManager();
-    console.log('💡 TipsManager carregado');
 });
