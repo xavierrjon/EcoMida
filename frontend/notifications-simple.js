@@ -5,6 +5,7 @@ class NotificationsSimple {
         this.isSubscribed = false;
         this.hasPermission = false;
         this.lastNotificationTime = 0;
+        this.isInitialized = false;
     }
 
     checkSupport() {
@@ -29,6 +30,10 @@ class NotificationsSimple {
     }
 
     async setup() {
+        if (this.isInitialized) {
+            return true;
+        }
+
         if (!this.isSupported) {
             return false;
         }
@@ -37,8 +42,10 @@ class NotificationsSimple {
             this.hasPermission = this.getPermissionStatus();
 
             if ('serviceWorker' in navigator) {
-                await navigator.serviceWorker.register('/sw.js');
+                await navigator.serviceWorker.register('/sw-notifications.js', { scope: '/' });
             }
+
+            this.isInitialized = true;
 
             return true;
         } catch (error) {

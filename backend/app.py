@@ -69,6 +69,15 @@ def create_app():
     @app.route('/images/<path:filename>')
     def serve_images(filename):
         return send_from_directory('../frontend/images', filename)
+
+    @app.route('/sw-notifications.js')
+    def serve_sw_notifications():
+        return send_from_directory('../frontend', 'sw-notifications.js')
+
+    @app.route('/sw.js')
+    def serve_sw_legacy_alias():
+        # Alias de compatibilidade para clientes antigos.
+        return send_from_directory('../frontend', 'sw-notifications.js')
     
     with app.app_context():
         db.create_all()
@@ -230,10 +239,6 @@ def create_app():
         return jsonify({"error": "Erro interno do servidor"}), 500
     
     return app
-
-    @app.route('/sw-notifications.js')
-    def serve_sw_notifications():
-        return send_from_directory('../frontend', 'sw-notifications.js')
 
 if __name__ == '__main__':
     app = create_app()

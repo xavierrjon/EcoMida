@@ -2,11 +2,18 @@ class NotificationSettings {
     constructor() {
         this.baseURL = `${window.location.origin}/api`;
         this.settings = null;
+        this.isInitialized = false;
     }
 
     async init() {
+        if (this.isInitialized) {
+            this.createSettingsScreen();
+            return;
+        }
+
         await this.loadSettings();
         this.renderSettingsUI();
+        this.isInitialized = true;
     }
 
     async loadSettings() {
@@ -102,6 +109,10 @@ class NotificationSettings {
             settingsScreen.innerHTML = this.getSettingsHTML();
             
             const mainContent = document.querySelector('.main-content');
+            if (!mainContent) {
+                console.error('❌ main-content não encontrado para configurações');
+                return;
+            }
             mainContent.appendChild(settingsScreen);
             
             this.attachSettingsEvents();
@@ -404,13 +415,23 @@ class NotificationSettings {
         }, 5000);
     }
 
-    showSettings() {
+    async showSettings() {
+        if (!this.isInitialized || !document.getElementById('notification-settings-screen')) {
+            await this.init();
+        }
+
         this.updateSettingsForm();
-        document.getElementById('notification-settings-screen').classList.add('active');
+        const settingsScreen = document.getElementById('notification-settings-screen');
+        if (settingsScreen) {
+            settingsScreen.classList.add('active');
+        }
     }
 
     hideSettings() {
-        document.getElementById('notification-settings-screen').classList.remove('active');
+        const settingsScreen = document.getElementById('notification-settings-screen');
+        if (settingsScreen) {
+            settingsScreen.classList.remove('active');
+        }
         document.getElementById('main-screen').classList.add('active');
     }
 }
