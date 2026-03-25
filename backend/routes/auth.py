@@ -75,7 +75,7 @@ def register():
     except Exception as e:
         db.session.rollback()
         logger.exception("Erro no registro")
-        return jsonify({"error": f"Erro interno: {str(e)}"}), 500
+        return jsonify({"error": "Erro interno do servidor"}), 500
 
 @auth_bp.route('/login', methods=['POST'])
 def login():
@@ -111,7 +111,7 @@ def login():
         
     except Exception as e:
         logger.exception("Erro no login")
-        return jsonify({"error": f"Erro interno: {str(e)}"}), 500
+        return jsonify({"error": "Erro interno do servidor"}), 500
 
 
 @auth_bp.route('/profile', methods=['GET'])
@@ -130,7 +130,8 @@ def get_profile():
         }), 200
         
     except Exception as e:
-        return jsonify({"error": f"Erro interno: {str(e)}"}), 500
+        logger.exception("Erro ao obter perfil")
+        return jsonify({"error": "Erro interno do servidor"}), 500
 
 @auth_bp.route('/profile', methods=['PUT'])
 @jwt_required()
@@ -185,7 +186,8 @@ def update_profile():
         
     except Exception as e:
         db.session.rollback()
-        return jsonify({"error": f"Erro interno: {str(e)}"}), 500
+        logger.exception("Erro ao atualizar perfil")
+        return jsonify({"error": "Erro interno do servidor"}), 500
 
 @auth_bp.route('/logout', methods=['POST'])
 @jwt_required()
@@ -197,7 +199,8 @@ def logout():
         }), 200
         
     except Exception as e:
-        return jsonify({"error": f"Erro interno: {str(e)}"}), 500
+        logger.exception("Erro no logout")
+        return jsonify({"error": "Erro interno do servidor"}), 500
     
 # routes/auth.py - ADICIONE esta rota para mudança de senha
 @auth_bp.route('/change-password', methods=['POST'])
@@ -240,4 +243,5 @@ def change_password():
         
     except Exception as e:
         db.session.rollback()
-        return jsonify({"error": f"Erro interno: {str(e)}"}), 500
+        logger.exception("Erro ao alterar senha")
+        return jsonify({"error": "Erro interno do servidor"}), 500

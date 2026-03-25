@@ -1,11 +1,13 @@
 from flask import Blueprint, request, jsonify
 from flask_jwt_extended import jwt_required, get_jwt_identity
 from datetime import datetime
+import logging
 from models.user import db, User
 from models.food import Food
 from models.history import History
 
 foods_bp = Blueprint('foods', __name__)
+logger = logging.getLogger(__name__)
 
 @foods_bp.route('/foods', methods=['POST'])
 @jwt_required()
@@ -69,7 +71,8 @@ def create_food():
         
     except Exception as e:
         db.session.rollback()
-        return jsonify({"error": f"Erro interno: {str(e)}"}), 500
+        logger.exception("Erro ao criar alimento")
+        return jsonify({"error": "Erro interno do servidor"}), 500
 
 @foods_bp.route('/foods', methods=['GET'])
 @jwt_required()
@@ -88,7 +91,8 @@ def get_foods():
         }), 200
         
     except Exception as e:
-        return jsonify({"error": f"Erro interno: {str(e)}"}), 500
+        logger.exception("Erro ao listar alimentos")
+        return jsonify({"error": "Erro interno do servidor"}), 500
 
 @foods_bp.route('/foods/<int:food_id>', methods=['PUT'])
 @jwt_required()
@@ -133,7 +137,8 @@ def update_food(food_id):
         
     except Exception as e:
         db.session.rollback()
-        return jsonify({"error": f"Erro interno: {str(e)}"}), 500
+        logger.exception("Erro ao atualizar alimento")
+        return jsonify({"error": "Erro interno do servidor"}), 500
 
 @foods_bp.route('/foods/<int:food_id>/consume', methods=['POST'])
 @jwt_required()
@@ -178,7 +183,8 @@ def update_food_status(food_id, status):
         
     except Exception as e:
         db.session.rollback()
-        return jsonify({"error": f"Erro interno: {str(e)}"}), 500
+        logger.exception("Erro ao atualizar status do alimento")
+        return jsonify({"error": "Erro interno do servidor"}), 500
 
 @foods_bp.route('/foods/<int:food_id>', methods=['DELETE'])
 @jwt_required()
@@ -209,7 +215,8 @@ def delete_food(food_id):
         
     except Exception as e:
         db.session.rollback()
-        return jsonify({"error": f"Erro interno: {str(e)}"}), 500
+        logger.exception("Erro ao excluir alimento")
+        return jsonify({"error": "Erro interno do servidor"}), 500
     
 @foods_bp.route('/foods/<int:food_id>/reactivate', methods=['POST'])
 @jwt_required()
@@ -245,4 +252,5 @@ def reactivate_food(food_id):
         
     except Exception as e:
         db.session.rollback()
-        return jsonify({"error": f"Erro interno: {str(e)}"}), 500
+        logger.exception("Erro ao reativar alimento")
+        return jsonify({"error": "Erro interno do servidor"}), 500
