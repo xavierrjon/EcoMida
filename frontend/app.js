@@ -22,15 +22,18 @@ class EcoMidaApp {
             if (!window.notificationSettings || typeof window.notificationSettings.showSettings !== 'function') {
 
                 await this.loadScript('notification-settings.js');
+            }
+
+            if (!window.notificationsSimple || typeof window.notificationsSimple.setup !== 'function') {
                 await this.loadScript('notifications-simple.js');
+            }
 
-                if (window.notificationSettings && typeof window.notificationSettings.init === 'function') {
-                    await window.notificationSettings.init();
-                }
+            if (window.notificationSettings && typeof window.notificationSettings.init === 'function') {
+                await window.notificationSettings.init();
+            }
 
-                if (window.notificationsSimple && typeof window.notificationsSimple.setup === 'function') {
-                    await window.notificationsSimple.setup();
-                }
+            if (window.notificationsSimple && typeof window.notificationsSimple.setup === 'function') {
+                await window.notificationsSimple.setup();
             }
 
             this.notificationModuleLoaded = true;
