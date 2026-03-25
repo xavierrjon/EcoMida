@@ -23,13 +23,7 @@ def create_app():
     
     CORS(app, resources={
         r"/api/*": {
-            "origins": [
-                "http://localhost:5000",
-                "http://localhost:8080", 
-                "https://*.ngrok.io",
-                "http://*.ngrok.io",
-                "*"  
-            ],
+            "origins": app.config.get('CORS_ALLOWED_ORIGINS', []),
             "methods": ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
             "allow_headers": ["Content-Type", "Authorization", "ngrok-skip-browser-warning"]
         }
@@ -43,8 +37,6 @@ def create_app():
     @app.after_request
     def after_request(response):
         response.headers.add('ngrok-skip-browser-warning', 'true')
-        response.headers.add('Access-Control-Allow-Headers', 'ngrok-skip-browser-warning')
-        response.headers.add('Access-Control-Allow-Origin', '*')
         return response
     
     app.register_blueprint(auth_bp, url_prefix='/api/auth')
@@ -213,7 +205,7 @@ def create_app():
         return jsonify({
             "status": "healthy", 
             "message": "EcoMida API está rodando",
-            "environment": "development",
+            "environment": app.config.get('APP_ENV', 'development'),
             "cors": "enabled"
         })
     

@@ -25,7 +25,7 @@ def get_tips():
         
     except Exception as e:
         logger.exception("Erro ao buscar dicas")
-        return jsonify({"error": f"Erro interno: {str(e)}"}), 500
+        return jsonify({"error": "Erro interno do servidor"}), 500
 
 @tips_bp.route('/tips/<int:tip_id>/favorite', methods=['POST'])
 @jwt_required()
@@ -54,4 +54,4 @@ def toggle_favorite(tip_id):
     except Exception as e:
         db.session.rollback()
         logger.exception("Erro ao favoritar dica")
-        return jsonify({"error": f"Erro interno: {str(e)}"}), 500
+        return jsonify({"error": "Erro interno do servidor"}), 500

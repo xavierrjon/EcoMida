@@ -1,10 +1,12 @@
 from flask import Blueprint, jsonify, request
 from flask_jwt_extended import jwt_required, get_jwt_identity
 from datetime import datetime, timedelta
+import logging
 from models.user import User, db
 from models.food import Food
 
 notifications_bp = Blueprint('notifications_api', __name__) 
+logger = logging.getLogger(__name__)
 
 @notifications_bp.route('/expiring', methods=['GET'])
 @jwt_required()
@@ -43,7 +45,8 @@ def get_expiring_foods():
         }), 200
         
     except Exception as e:
-        return jsonify({"error": f"Erro interno: {str(e)}"}), 500
+        logger.exception("Erro ao buscar notificacoes de vencimento")
+        return jsonify({"error": "Erro interno do servidor"}), 500
 
 @notifications_bp.route('/settings', methods=['GET'])
 @jwt_required()
@@ -61,7 +64,8 @@ def get_notification_settings():
         }), 200
         
     except Exception as e:
-        return jsonify({"error": f"Erro interno: {str(e)}"}), 500
+        logger.exception("Erro ao obter configuracoes de notificacao")
+        return jsonify({"error": "Erro interno do servidor"}), 500
 
 @notifications_bp.route('/settings', methods=['PUT'])
 @jwt_required()
@@ -94,7 +98,8 @@ def update_notification_settings():
         
     except Exception as e:
         db.session.rollback()
-        return jsonify({"error": f"Erro interno: {str(e)}"}), 500
+        logger.exception("Erro ao atualizar configuracoes de notificacao")
+        return jsonify({"error": "Erro interno do servidor"}), 500
 
 @notifications_bp.route('/test', methods=['GET'])
 @jwt_required()
