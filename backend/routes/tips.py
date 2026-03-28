@@ -2,6 +2,7 @@ from flask import Blueprint, request, jsonify
 from flask_jwt_extended import jwt_required, get_jwt_identity
 from models.user import db, User
 from models.tip import Tip
+from utils.auth import get_user_from_jwt_identity
 import logging
 
 logger = logging.getLogger(__name__)
@@ -31,9 +32,8 @@ def get_tips():
 @jwt_required()
 def toggle_favorite(tip_id):
     try:
-        current_user_email = get_jwt_identity()
-        
-        user = User.query.filter_by(email=current_user_email).first()
+        current_identity = get_jwt_identity()
+        user = get_user_from_jwt_identity(current_identity)
         if not user:
             return jsonify({"error": "Usuário não encontrado"}), 404
         

@@ -1,6 +1,7 @@
 from flask import Blueprint, request, jsonify
 from flask_jwt_extended import create_access_token, jwt_required, get_jwt_identity
 from models.user import db, User
+from utils.auth import get_user_from_jwt_identity
 import re
 import logging
 
@@ -101,7 +102,7 @@ def login():
         if not user.check_password(password):
             return jsonify({"error": "Senha incorreta!"}), 401
         
-        access_token = create_access_token(identity=user.email)
+        access_token = create_access_token(identity=user.id)
         
         return jsonify({
             "message": "Login realizado com sucesso",
@@ -119,8 +120,8 @@ def login():
 def get_profile():
     """Retorna os dados do perfil do usuário logado"""
     try:
-        current_user_email = get_jwt_identity()
-        user = User.query.filter_by(email=current_user_email).first()
+        current_identity = get_jwt_identity()
+        user = get_user_from_jwt_identity(current_identity)
         
         if not user:
             return jsonify({"error": "Usuário não encontrado"}), 404
@@ -138,8 +139,8 @@ def get_profile():
 def update_profile():
     """Atualiza os dados do perfil do usuário"""
     try:
-        current_user_email = get_jwt_identity()
-        user = User.query.filter_by(email=current_user_email).first()
+        current_identity = get_jwt_identity()
+        user = get_user_from_jwt_identity(current_identity)
         
         if not user:
             return jsonify({"error": "Usuário não encontrado"}), 404
@@ -208,8 +209,8 @@ def logout():
 def change_password():
     """Altera a senha do usuário"""
     try:
-        current_user_email = get_jwt_identity()
-        user = User.query.filter_by(email=current_user_email).first()
+        current_identity = get_jwt_identity()
+        user = get_user_from_jwt_identity(current_identity)
         
         if not user:
             return jsonify({"error": "Usuário não encontrado"}), 404
