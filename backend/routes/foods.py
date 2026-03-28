@@ -3,6 +3,7 @@ from flask_jwt_extended import jwt_required, get_jwt_identity
 from datetime import datetime
 import logging
 from models.user import db, User
+from utils.auth import get_user_from_jwt_identity
 from models.food import Food
 from models.history import History
 
@@ -13,7 +14,7 @@ logger = logging.getLogger(__name__)
 @jwt_required()
 def create_food():
     try:
-        current_user_email = get_jwt_identity()
+        current_identity = get_jwt_identity()
         data = request.get_json()
         
         if not data:
@@ -33,7 +34,7 @@ def create_food():
         except ValueError:
             return jsonify({"error": "Formato de data inválido. Use YYYY-MM-DD"}), 400
         
-        user = User.query.filter_by(email=current_user_email).first()
+        user = get_user_from_jwt_identity(current_identity)
         if not user:
             return jsonify({"error": "Usuário não encontrado"}), 404
         
@@ -78,9 +79,9 @@ def create_food():
 @jwt_required()
 def get_foods():
     try:
-        current_user_email = get_jwt_identity()
+        current_identity = get_jwt_identity()
         
-        user = User.query.filter_by(email=current_user_email).first()
+        user = get_user_from_jwt_identity(current_identity)
         if not user:
             return jsonify({"error": "Usuário não encontrado"}), 404
         
@@ -98,10 +99,10 @@ def get_foods():
 @jwt_required()
 def update_food(food_id):
     try:
-        current_user_email = get_jwt_identity()
+        current_identity = get_jwt_identity()
         data = request.get_json()
         
-        user = User.query.filter_by(email=current_user_email).first()
+        user = get_user_from_jwt_identity(current_identity)
         if not user:
             return jsonify({"error": "Usuário não encontrado"}), 404
         
@@ -152,9 +153,9 @@ def mark_as_discarded(food_id):
 
 def update_food_status(food_id, status):
     try:
-        current_user_email = get_jwt_identity()
+        current_identity = get_jwt_identity()
         
-        user = User.query.filter_by(email=current_user_email).first()
+        user = get_user_from_jwt_identity(current_identity)
         if not user:
             return jsonify({"error": "Usuário não encontrado"}), 404
         
@@ -190,9 +191,9 @@ def update_food_status(food_id, status):
 @jwt_required()
 def delete_food(food_id):
     try:
-        current_user_email = get_jwt_identity()
+        current_identity = get_jwt_identity()
         
-        user = User.query.filter_by(email=current_user_email).first()
+        user = get_user_from_jwt_identity(current_identity)
         if not user:
             return jsonify({"error": "Usuário não encontrado"}), 404
         
@@ -222,9 +223,9 @@ def delete_food(food_id):
 @jwt_required()
 def reactivate_food(food_id):
     try:
-        current_user_email = get_jwt_identity()
+        current_identity = get_jwt_identity()
         
-        user = User.query.filter_by(email=current_user_email).first()
+        user = get_user_from_jwt_identity(current_identity)
         if not user:
             return jsonify({"error": "Usuário não encontrado"}), 404
         

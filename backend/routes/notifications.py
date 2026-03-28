@@ -3,6 +3,7 @@ from flask_jwt_extended import jwt_required, get_jwt_identity
 from datetime import datetime, timedelta
 import logging
 from models.user import User, db
+from utils.auth import get_user_from_jwt_identity
 from models.food import Food
 
 notifications_bp = Blueprint('notifications_api', __name__) 
@@ -13,8 +14,8 @@ logger = logging.getLogger(__name__)
 def get_expiring_foods():
     """Retorna alimentos próximos do vencimento do usuário logado"""
     try:
-        current_user_email = get_jwt_identity()
-        user = User.query.filter_by(email=current_user_email).first()
+        current_identity = get_jwt_identity()
+        user = get_user_from_jwt_identity(current_identity)
         
         if not user:
             return jsonify({"error": "Usuário não encontrado"}), 404
@@ -53,8 +54,8 @@ def get_expiring_foods():
 def get_notification_settings():
     """Retorna as configurações de notificação do usuário"""
     try:
-        current_user_email = get_jwt_identity()
-        user = User.query.filter_by(email=current_user_email).first()
+        current_identity = get_jwt_identity()
+        user = get_user_from_jwt_identity(current_identity)
         
         if not user:
             return jsonify({"error": "Usuário não encontrado"}), 404
@@ -72,8 +73,8 @@ def get_notification_settings():
 def update_notification_settings():
     """Atualiza as configurações de notificação do usuário"""
     try:
-        current_user_email = get_jwt_identity()
-        user = User.query.filter_by(email=current_user_email).first()
+        current_identity = get_jwt_identity()
+        user = get_user_from_jwt_identity(current_identity)
         
         if not user:
             return jsonify({"error": "Usuário não encontrado"}), 404
