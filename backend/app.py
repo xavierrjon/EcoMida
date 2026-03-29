@@ -50,6 +50,9 @@ def create_app():
     
     @app.route('/<path:filename>')
     def serve_static(filename):
+        if filename.startswith('api/'):
+            return jsonify({"error": "Rota de API não encontrada"}), 404
+
         frontend_path = os.path.join(os.path.dirname(__file__), '../frontend')
         file_path = os.path.join(frontend_path, filename)
         
@@ -222,6 +225,8 @@ def create_app():
     
     @app.errorhandler(404)
     def not_found(error):
+        if request.path.startswith('/api/'):
+            return jsonify({"error": "Rota de API não encontrada"}), 404
         return send_from_directory('../frontend', 'index.html')
     
     @app.errorhandler(500)
