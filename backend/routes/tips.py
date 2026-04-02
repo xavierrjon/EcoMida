@@ -11,6 +11,7 @@ logger = logging.getLogger(__name__)
 tips_bp = Blueprint('tips', __name__)
 
 @tips_bp.route('/tips', methods=['GET'])
+@jwt_required(optional=True)
 def get_tips():
     """
     Retorna todas as dicas ativas, com indicador de favorito se usuário autenticado.
@@ -19,13 +20,10 @@ def get_tips():
         category = request.args.get('category')
         current_user = None
         
-        # Verificar se há token JWT (usuário autenticado)
-        try:
-            current_identity = get_jwt_identity()
+        # Token é opcional: se existir, marcamos os favoritos do usuário atual.
+        current_identity = get_jwt_identity()
+        if current_identity:
             current_user = get_user_from_jwt_identity(current_identity)
-        except:
-            # Sem autenticação, continua sem usuário
-            pass
         
         query = Tip.query.filter_by(is_active=True)
         if category:
@@ -33,18 +31,19 @@ def get_tips():
         
         tips = query.all()
         
+        # Buscar favoritos do usuário em uma única consulta para evitar N+1 queries.
+        favorite_tip_ids = set()
+        if current_user:
+            favorite_tip_ids = {
+                fav.tip_id
+                for fav in UserTipFavorite.query.filter_by(user_id=current_user.id).all()
+            }
+
         # Construir lista de dicas com indicador de favorito
         tips_data = []
         for tip in tips:
             tip_dict = tip.to_dict()
-            # Verificar se o usuário atual favoritou esta dica
-            tip_dict['is_favorite'] = False
-            if current_user:
-                favorite = UserTipFavorite.query.filter_by(
-                    user_id=current_user.id,
-                    tip_id=tip.id
-                ).first()
-                tip_dict['is_favorite'] = favorite is not None
+            tip_dict['is_favorite'] = tip.id in favorite_tip_ids
             tips_data.append(tip_dict)
         
         return jsonify({
