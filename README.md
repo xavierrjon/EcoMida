@@ -191,8 +191,8 @@ https://abcdef1234.ngrok.io
 
 | Função      | Nome                | Responsabilidade          |
 |-------------|---------------------|----------------------------|
-| Dev 1       | Johnny Xavier       | Backend                    |
-| Dev 2       | Raíssa Martins      | Frontend                   |
+| Dev 1       | Johnny Xavier       | FullStack                  |
+| Dev 2       | Raíssa Martins      | FullStack                  |
 | Revisor 1   | Emelly Cristina     | Revisão Backend            |
 | Revisor 2   | Nathalya Christine  | Revisão Frontend           |
 | Revisor 3   | Rhanna Karoline     | Revisão Geral              |
