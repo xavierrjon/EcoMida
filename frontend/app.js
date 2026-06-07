@@ -223,7 +223,9 @@ class EcoMidaApp {
             `;
         }).join('');
 
-        this.attachFoodEvents();
+        if (typeof this.attachFoodEvents === 'function') {
+            this.attachFoodEvents();
+        }
     }
 
     setupEventListeners() {
@@ -262,11 +264,6 @@ class EcoMidaApp {
 
             if (e.target.id === 'cancel-add-food') {
                 this.showScreen('main-screen');
-                return;
-            }
-
-            if (e.target.classList.contains('category-btn')) {
-                this.filterTipsByCategory(e.target);
                 return;
             }
 
@@ -764,21 +761,6 @@ class EcoMidaApp {
         `;
     }
 
-    async loadFoods() {
-        
-    }
-
-    async loadTips() {
-        
-    }
-
-    filterTipsByCategory(button) {
-        
-    }
-
-    attachFoodEvents() {
-      
-    }
 }
 
 document.addEventListener('DOMContentLoaded', () => {
