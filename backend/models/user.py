@@ -32,6 +32,8 @@ class User(db.Model):
     
     foods = db.relationship('Food', backref='user', lazy=True)
     histories = db.relationship('History', backref='user', lazy=True)
+    # Relacionamento com dicas favoritadas através de UserTipFavorite
+    favorite_tips = db.relationship('UserTipFavorite', backref='user', lazy=True, cascade='all, delete-orphan')
     
     def set_password(self, password):
         self.password_hash = generate_password_hash(password).decode('utf-8')

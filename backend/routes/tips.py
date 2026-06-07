@@ -2,14 +2,28 @@ from flask import Blueprint, request, jsonify
 from flask_jwt_extended import jwt_required, get_jwt_identity
 from models.user import db, User
 from models.tip import Tip
-import traceback
+from models.favorites import UserTipFavorite
+from utils.auth import get_user_from_jwt_identity
+import logging
+
+logger = logging.getLogger(__name__)
 
 tips_bp = Blueprint('tips', __name__)
 
 @tips_bp.route('/tips', methods=['GET'])
+@jwt_required(optional=True)
 def get_tips():
+    """
+    Retorna todas as dicas ativas, com indicador de favorito se usuário autenticado.
+    """
     try:
         category = request.args.get('category')
+        current_user = None
+        
+        # Token é opcional: se existir, marcamos os favoritos do usuário atual.
+        current_identity = get_jwt_identity()
+        if current_identity:
+            current_user = get_user_from_jwt_identity(current_identity)
         
         query = Tip.query.filter_by(is_active=True)
         if category:
@@ -17,48 +31,75 @@ def get_tips():
         
         tips = query.all()
         
+        # Buscar favoritos do usuário em uma única consulta para evitar N+1 queries.
+        favorite_tip_ids = set()
+        if current_user:
+            favorite_tip_ids = {
+                fav.tip_id
+                for fav in UserTipFavorite.query.filter_by(user_id=current_user.id).all()
+            }
+
+        # Construir lista de dicas com indicador de favorito
+        tips_data = []
+        for tip in tips:
+            tip_dict = tip.to_dict()
+            tip_dict['is_favorite'] = tip.id in favorite_tip_ids
+            tips_data.append(tip_dict)
+        
         return jsonify({
-            "tips": [tip.to_dict() for tip in tips]
+            "tips": tips_data
         }), 200
         
     except Exception as e:
-        print(f"❌ Erro ao buscar dicas: {str(e)}")
-        print(traceback.format_exc())
-        return jsonify({"error": f"Erro interno: {str(e)}"}), 500
+        logger.exception("Erro ao buscar dicas")
+        return jsonify({"error": "Erro interno do servidor"}), 500
 
 @tips_bp.route('/tips/<int:tip_id>/favorite', methods=['POST'])
 @jwt_required()
 def toggle_favorite(tip_id):
+    """
+    Toggle de favorito para uma dica (idempotente).
+    - Se não favoritada: adiciona à UserTipFavorite
+    - Se favoritada: remove de UserTipFavorite
+    """
     try:
-        print(f"🔍 Tentando favoritar dica ID: {tip_id}")
-        
-        current_user_email = get_jwt_identity()
-        
-        user = User.query.filter_by(email=current_user_email).first()
+        current_identity = get_jwt_identity()
+        user = get_user_from_jwt_identity(current_identity)
         if not user:
             return jsonify({"error": "Usuário não encontrado"}), 404
         
         # Verificar se a dica existe
         tip = Tip.query.get(tip_id)
         if not tip:
-            print(f"❌ Dica com ID {tip_id} não encontrada")
             return jsonify({"error": "Dica não encontrada"}), 404
-        
-        print(f"✅ Dica encontrada: {tip.title}")
-        
-        # Incrementar contador de favoritos
-        tip.favorites_count += 1
+
+        # Verificar se já é favorito
+        existing_favorite = UserTipFavorite.query.filter_by(
+            user_id=user.id,
+            tip_id=tip_id
+        ).first()
+
+        if existing_favorite:
+            # Já está favoritado, remover
+            db.session.delete(existing_favorite)
+            is_favorite = False
+            message = "Dica removida dos favoritos"
+        else:
+            # Não está favoritado, adicionar
+            new_favorite = UserTipFavorite(user_id=user.id, tip_id=tip_id)
+            db.session.add(new_favorite)
+            is_favorite = True
+            message = "Dica adicionada aos favoritos"
+
         db.session.commit()
-        
-        print(f"✅ Dica favoritada com sucesso. Novo count: {tip.favorites_count}")
-        
+
         return jsonify({
-            "message": "Dica favoritada com sucesso",
-            "favorites_count": tip.favorites_count
+            "message": message,
+            "is_favorite": is_favorite,
+            "tip_id": tip_id
         }), 200
         
     except Exception as e:
         db.session.rollback()
-        print(f"❌ Erro ao favoritar dica: {str(e)}")
-        print(traceback.format_exc())
-        return jsonify({"error": f"Erro interno: {str(e)}"}), 500
+        logger.exception("Erro ao favoritar dica")
+        return jsonify({"error": "Erro interno do servidor"}), 500

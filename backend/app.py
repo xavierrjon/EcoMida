@@ -23,13 +23,7 @@ def create_app():
     
     CORS(app, resources={
         r"/api/*": {
-            "origins": [
-                "http://localhost:5000",
-                "http://localhost:8080", 
-                "https://*.ngrok.io",
-                "http://*.ngrok.io",
-                "*"  
-            ],
+            "origins": app.config.get('CORS_ALLOWED_ORIGINS', []),
             "methods": ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
             "allow_headers": ["Content-Type", "Authorization", "ngrok-skip-browser-warning"]
         }
@@ -43,8 +37,6 @@ def create_app():
     @app.after_request
     def after_request(response):
         response.headers.add('ngrok-skip-browser-warning', 'true')
-        response.headers.add('Access-Control-Allow-Headers', 'ngrok-skip-browser-warning')
-        response.headers.add('Access-Control-Allow-Origin', '*')
         return response
     
     app.register_blueprint(auth_bp, url_prefix='/api/auth')
@@ -58,6 +50,9 @@ def create_app():
     
     @app.route('/<path:filename>')
     def serve_static(filename):
+        if filename.startswith('api/'):
+            return jsonify({"error": "Rota de API não encontrada"}), 404
+
         frontend_path = os.path.join(os.path.dirname(__file__), '../frontend')
         file_path = os.path.join(frontend_path, filename)
         
@@ -69,10 +64,19 @@ def create_app():
     @app.route('/images/<path:filename>')
     def serve_images(filename):
         return send_from_directory('../frontend/images', filename)
+
+    @app.route('/sw-notifications.js')
+    def serve_sw_notifications():
+        return send_from_directory('../frontend', 'sw-notifications.js')
+
+    @app.route('/sw.js')
+    def serve_sw_legacy_alias():
+        # Alias de compatibilidade para clientes antigos.
+        return send_from_directory('../frontend', 'sw-notifications.js')
     
     with app.app_context():
         db.create_all()
-        print("✅ Tabelas do banco criadas com sucesso!")
+        app.logger.info("Tabelas do banco criadas com sucesso")
         
         if Tip.query.count() == 0:
             default_tips = [
@@ -197,14 +201,14 @@ def create_app():
             
             db.session.bulk_save_objects(default_tips)
             db.session.commit()
-            print(f"✅ {len(default_tips)} dicas padrão adicionadas!")
+            app.logger.info("%s dicas padrao adicionadas", len(default_tips))
     
     @app.route('/api/health', methods=['GET'])
     def health_check():
         return jsonify({
             "status": "healthy", 
             "message": "EcoMida API está rodando",
-            "environment": "development",
+            "environment": app.config.get('APP_ENV', 'development'),
             "cors": "enabled"
         })
     
@@ -221,29 +225,19 @@ def create_app():
     
     @app.errorhandler(404)
     def not_found(error):
+        if request.path.startswith('/api/'):
+            return jsonify({"error": "Rota de API não encontrada"}), 404
         return send_from_directory('../frontend', 'index.html')
     
     @app.errorhandler(500)
     def internal_error(error):
         error_traceback = traceback.format_exc()
-        print("❌ ERRO 500 DETALHADO:")
-        print(error_traceback)
+        app.logger.error("Erro 500 detalhado: %s", error_traceback)
         return jsonify({"error": "Erro interno do servidor"}), 500
     
     return app
 
-    @app.route('/sw-notifications.js')
-    def serve_sw_notifications():
-        return send_from_directory('../frontend', 'sw-notifications.js')
-
 if __name__ == '__main__':
     app = create_app()
-    
-    print("🚀 EcoMida Full-Stack com Ngrok iniciando...")
-    print("")
-    print("⚠️  Para usar com Ngrok:")
-    print("1. Rode: ngrok http 5000")
-    print("2. Acesse a URL do Ngrok no celular")
-    print("")
-    
+
     app.run(debug=True, host='0.0.0.0', port=5000)

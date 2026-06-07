@@ -12,6 +12,9 @@ class Tip(db.Model):
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
     updated_at = db.Column(db.DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
     
+    # Relacionamento com usuários que favoritaram através de UserTipFavorite
+    favorited_by_users = db.relationship('UserTipFavorite', backref='tip', lazy=True, cascade='all, delete-orphan')
+    
     def to_dict(self):
         return {
             "id": self.id,

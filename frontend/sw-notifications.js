@@ -1,55 +1,27 @@
-console.log('🔄 Service Worker carregando... PWA:',
-    window.matchMedia('(display-mode: standalone)').matches);
-
-// Verificar se estamos em PWA
-const isPWA = window.matchMedia('(display-mode: standalone)').matches ||
-    ('standalone' in navigator && navigator.standalone);
-
-if (isPWA) {
-    console.log('📱 Modo PWA detectado, ajustando comportamento...');
-
-    // Forçar reload dos scripts importantes no PWA
-    if ('serviceWorker' in navigator) {
-        navigator.serviceWorker.getRegistrations().then(registrations => {
-            registrations.forEach(registration => {
-                registration.update(); // Forçar atualização
-            });
-        });
-    }
-}
-
-self.addEventListener('install', (event) => {
-    console.log('✅ Service Worker instalado');
+self.addEventListener('install', () => {
     self.skipWaiting();
 });
 
 self.addEventListener('activate', (event) => {
-    console.log('🔄 Service Worker ativado');
     event.waitUntil(self.clients.claim());
 });
 
 self.addEventListener('push', (event) => {
-    console.log('📢 Push event recebido:', event);
+    let data = {
+        title: 'EcoMida',
+        body: 'Alerta de alimento proximo do vencimento'
+    };
 
-    if (!event.data) {
-        console.log('❌ Push sem dados');
-        return;
-    }
-
-    let data;
-    try {
-        data = event.data.json();
-        console.log('📦 Dados da push:', data);
-    } catch (error) {
-        console.log('❌ Erro ao parsear dados, usando padrão');
-        data = {
-            title: 'EcoMida',
-            body: 'Alerta de alimento próximo do vencimento'
-        };
+    if (event.data) {
+        try {
+            data = event.data.json();
+        } catch (error) {
+            // Mantem payload padrao quando push nao vem em JSON.
+        }
     }
 
     const options = {
-        body: data.body || 'Alerta de alimento próximo do vencimento',
+        body: data.body || 'Alerta de alimento proximo do vencimento',
         icon: '/images/ecomida192.png',
         badge: '/images/ecomida192.png',
         tag: 'food-alert',
@@ -66,7 +38,7 @@ self.addEventListener('push', (event) => {
                 icon: '/images/ecomida192.png'
             }
         ],
-        data: data
+        data
     };
 
     event.waitUntil(
@@ -75,82 +47,34 @@ self.addEventListener('push', (event) => {
 });
 
 self.addEventListener('notificationclick', (event) => {
-    console.log('🖱️ Notificação clicada:', event.action);
     event.notification.close();
 
-    if (event.action === 'view') {
-        event.waitUntil(
-            clients.matchAll({ type: 'window' }).then(clientList => {
-                for (const client of clientList) {
-                    if (client.url.includes('/') && 'focus' in client) {
-                        return client.focus();
-                    }
-                }
-                if (clients.openWindow) {
-                    return clients.openWindow('/');
-                }
-            })
-        );
-    } else if (event.action === 'dismiss') {
-
-        console.log('❌ Notificação descartada');
-    } else {
-        event.waitUntil(
-            clients.openWindow('/').then(windowClient => {
-                console.log('📍 Aplicação aberta');
-            })
-        );
+    if (event.action === 'dismiss') {
+        return;
     }
+
+    event.waitUntil(
+        clients.matchAll({ type: 'window', includeUncontrolled: true }).then((clientList) => {
+            for (const client of clientList) {
+                if ('focus' in client) {
+                    return client.focus();
+                }
+            }
+
+            if (clients.openWindow) {
+                return clients.openWindow('/');
+            }
+
+            return undefined;
+        })
+    );
 });
 
 self.addEventListener('message', (event) => {
-    console.log('📨 Mensagem do cliente:', event.data);
     if (event.data && event.data.type === 'TEST_NOTIFICATION') {
         self.registration.showNotification('EcoMida - Teste SW', {
             body: 'Teste do Service Worker funcionando!',
             icon: '/images/ecomida192.png'
         });
     }
-});
-
-self.addEventListener('push', (event) => {
-    console.log('📱 Push event no mobile:', event);
-
-    const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
-
-    let data;
-    try {
-        data = event.data.json();
-    } catch (error) {
-        data = {
-            title: 'EcoMida',
-            body: 'Alerta: Alimento próximo do vencimento'
-        };
-    }
-
-    const options = {
-        body: data.body || 'Alerta de alimento próximo do vencimento',
-        icon: '/images/ecomida192.png',
-        badge: '/images/ecomida192.png',
-        tag: 'food-alert',
-        requireInteraction: false,
-        data: data
-    };
-
-    if (isMobile) {
-        options.actions = [];
-    } else {
-        options.actions = [
-            {
-                action: 'view',
-                title: 'Ver Alimentos',
-                icon: '/images/ecomida192.png'
-            }
-        ];
-        options.requireInteraction = true;
-    }
-
-    event.waitUntil(
-        self.registration.showNotification(data.title || 'EcoMida', options)
-    );
 });

@@ -2,30 +2,42 @@ class TipsManager {
     constructor() {
         this.baseURL = `${window.location.origin}/api`;
         this.favoriteTips = new Set();
+        this.allTips = [];
         this.currentCategory = 'all';
         this.init();
     }
 
     init() {
-        console.log('💡 TipsManager inicializado');
-        this.loadFavorites();
         this.attachTipEvents();
     }
 
     async loadTips() {
         try {
-            console.log('🔗 Carregando dicas...');
+            const headers = {
+                'ngrok-skip-browser-warning': 'true'
+            };
+            
+            // Adicionar token de autenticação se disponível
+            const token = window.authManager?.getToken() || localStorage.getItem('auth_token');
+            if (token) {
+                headers['Authorization'] = `Bearer ${token}`;
+            }
+            
             const response = await fetch(`${this.baseURL}/tips`, {
-                headers: {
-                    'ngrok-skip-browser-warning': 'true'
-                }
+                headers: headers
             });
 
             if (response.ok) {
                 const data = await response.json();
-                console.log('📚 Dicas recebidas:', data.tips);
-                this.renderTips(data.tips);
-                return data.tips;
+                this.allTips = data.tips || [];
+                // Atualizar conjunto de favoritos baseado na resposta do servidor
+                this.favoriteTips = new Set(
+                    this.allTips
+                        .filter(tip => tip.is_favorite)
+                        .map(tip => tip.id)
+                );
+                this.renderTips(this.allTips);
+                return this.allTips;
             } else {
                 throw new Error(`Erro ${response.status}`);
             }
@@ -46,7 +58,11 @@ class TipsManager {
 
         let filteredTips = tips;
         if (this.currentCategory !== 'all') {
-            filteredTips = tips.filter(tip => tip.food_category === this.currentCategory);
+            if (this.currentCategory === 'favorites') {
+                filteredTips = tips.filter(tip => this.favoriteTips.has(tip.id));
+            } else {
+                filteredTips = tips.filter(tip => tip.food_category === this.currentCategory);
+            }
         }
 
         if (filteredTips.length === 0) {
@@ -85,19 +101,48 @@ class TipsManager {
         ).join('');
     }
 
-    toggleFavorite(tipId) {
-        if (this.favoriteTips.has(tipId)) {
-            this.favoriteTips.delete(tipId);
-        } else {
-            this.favoriteTips.add(tipId);
+    async toggleFavorite(tipId) {
+        try {
+            const token = window.authManager?.getToken() || localStorage.getItem('auth_token');
+            if (!token) {
+                this.showNotification('É necessário estar autenticado para favoritar', 'error');
+                return;
+            }
+
+            const response = await fetch(`${this.baseURL}/tips/${tipId}/favorite`, {
+                method: 'POST',
+                headers: {
+                    'Authorization': `Bearer ${token}`,
+                    'ngrok-skip-browser-warning': 'true'
+                }
+            });
+
+            if (response.ok) {
+                const data = await response.json();
+                
+                // Atualizar estado local baseado na resposta
+                if (data.is_favorite) {
+                    this.favoriteTips.add(tipId);
+                } else {
+                    this.favoriteTips.delete(tipId);
+                }
+                
+                // Em "Favoritas", o item pode sair da lista ao desfavoritar.
+                if (this.currentCategory === 'favorites') {
+                    this.renderTips(this.allTips);
+                } else {
+                    this.updateFavoriteButton(tipId);
+                }
+                this.showNotification(data.message, 'success');
+            } else if (response.status === 401) {
+                this.showNotification('Sessão expirada, por favor recarregue a página', 'error');
+            } else {
+                throw new Error(`Erro ${response.status}`);
+            }
+        } catch (error) {
+            console.error('❌ Erro ao favoritar dica:', error);
+            this.showNotification('Erro ao favoritar dica', 'error');
         }
-        
-        this.saveFavorites();
-        this.updateFavoriteButton(tipId);
-        this.showNotification(
-            this.favoriteTips.has(tipId) ? 'Dica adicionada aos favoritos!' : 'Dica removida dos favoritos!',
-            'success'
-        );
     }
 
     updateFavoriteButton(tipId) {
@@ -116,21 +161,6 @@ class TipsManager {
         }
     }
 
-    saveFavorites() {
-        localStorage.setItem('favoriteTips', JSON.stringify([...this.favoriteTips]));
-    }
-
-    loadFavorites() {
-        try {
-            const saved = localStorage.getItem('favoriteTips');
-            if (saved) {
-                this.favoriteTips = new Set(JSON.parse(saved));
-            }
-        } catch (error) {
-            console.error('❌ Erro ao carregar favoritos:', error);
-        }
-    }
-
     filterByCategory(category) {
         this.currentCategory = category;
         
@@ -144,8 +174,9 @@ class TipsManager {
 
     attachTipEvents() {
         document.addEventListener('click', (e) => {
-            if (e.target.classList.contains('category-btn')) {
-                const category = e.target.getAttribute('data-category');
+            const categoryBtn = e.target.closest('.category-btn');
+            if (categoryBtn) {
+                const category = categoryBtn.getAttribute('data-category');
                 this.filterByCategory(category);
             }
         });
@@ -169,7 +200,8 @@ class TipsManager {
             'carnes': 'Carnes',
             'graos': 'Grãos',
             'bebidas': 'Bebidas',
-            'outros': 'Outros'
+            'outros': 'Outros',
+            'favorites': 'Favoritas'
         };
         return categories[category] || category;
     }
@@ -187,6 +219,17 @@ class TipsManager {
 
     showCategoryEmptyState() {
         const tipsList = document.getElementById('tips-list');
+        if (this.currentCategory === 'favorites') {
+            tipsList.innerHTML = `
+                <div class="empty-state">
+                    <span class="material-icons">favorite_border</span>
+                    <p>Nenhuma dica favoritada</p>
+                    <p class="empty-state-hint">Toque no coração para adicionar favoritas</p>
+                </div>
+            `;
+            return;
+        }
+
         const categoryLabel = this.getCategoryLabel(this.currentCategory);
         tipsList.innerHTML = `
             <div class="empty-state">
@@ -214,129 +257,9 @@ class TipsManager {
             .replace(/"/g, "&quot;")
             .replace(/'/g, "&#039;");
     }
-
-    async loadTips() {
-        try {
-            console.log('🔗 Carregando dicas de:', `${this.baseURL}/tips`);
-            
-            const response = await fetch(`${this.baseURL}/tips`, {
-                headers: {
-                    'ngrok-skip-browser-warning': 'true'
-                }
-            });
-
-            console.log('📡 Status da resposta:', response.status);
-            console.log('📡 Headers:', response.headers);
-
-            if (response.ok) {
-                const data = await response.json();
-                console.log('📚 Dicas recebidas:', data);
-                this.renderTips(data.tips || data); 
-                return data.tips || data;
-            } else {
-                const errorText = await response.text();
-                console.error('❌ Erro na resposta:', errorText);
-                throw new Error(`Erro ${response.status}: ${errorText}`);
-            }
-        } catch (error) {
-            console.error('❌ Erro ao carregar dicas:', error);
-            this.showEmptyState();
-            this.showNotification('Erro ao carregar dicas: ' + error.message, 'error');
-        }
-    }
-
-    getFavoriteTips(allTips) {
-        return allTips.filter(tip => this.favoriteTips.has(tip.id));
-    }
-
-    renderTips(tips) {
-        const tipsList = document.getElementById('tips-list');
-        
-        if (!tips || tips.length === 0) {
-            this.showEmptyState();
-            return;
-        }
-
-        let filteredTips = tips;
-        if (this.currentCategory !== 'all') {
-            if (this.currentCategory === 'favorites') {
-                filteredTips = this.getFavoriteTips(tips);
-            } else {
-                filteredTips = tips.filter(tip => tip.food_category === this.currentCategory);
-            }
-        }
-
-        if (filteredTips.length === 0) {
-            this.showCategoryEmptyState();
-            return;
-        }
-
-        tipsList.innerHTML = filteredTips.map((tip, index) => `
-            <div class="tip-card" data-tip-id="${tip.id}" style="animation-delay: ${index * 0.1}s">
-                <div class="tip-header">
-                    <h3 class="tip-title">${this.escapeHtml(tip.title)}</h3>
-                    <div class="tip-actions">
-                        <button class="icon-btn favorite-btn ${this.favoriteTips.has(tip.id) ? 'favorited' : ''}" 
-                                data-tip-id="${tip.id}" title="${this.favoriteTips.has(tip.id) ? 'Remover dos favoritos' : 'Adicionar aos favoritos'}">
-                            <span class="material-icons">${this.favoriteTips.has(tip.id) ? 'favorite' : 'favorite_border'}</span>
-                        </button>
-                    </div>
-                </div>
-                
-                <div class="tip-category">
-                    <span class="category-badge ${tip.food_category}">${this.getCategoryLabel(tip.food_category)}</span>
-                </div>
-                
-                <div class="tip-content">
-                    ${this.formatTipContent(tip.content)}
-                </div>
-            </div>
-        `).join('');
-
-        this.attachTipCardEvents();
-    }
-
-    getCategoryLabel(category) {
-        const categories = {
-            'laticinios': 'Laticínios',
-            'frutas': 'Frutas',
-            'verduras': 'Verduras',
-            'carnes': 'Carnes',
-            'graos': 'Grãos',
-            'bebidas': 'Bebidas',
-            'outros': 'Outros',
-            'favorites': 'Favoritas' 
-        };
-        return categories[category] || category;
-    }
-
-    showCategoryEmptyState() {
-        const tipsList = document.getElementById('tips-list');
-        let message = '';
-        let icon = 'search';
-        let hint = 'Tente outra categoria';
-
-        if (this.currentCategory === 'favorites') {
-            message = 'Nenhuma dica favoritada';
-            icon = 'favorite_border';
-            hint = 'Toque no ❤️ para favoritar dicas';
-        } else {
-            const categoryLabel = this.getCategoryLabel(this.currentCategory);
-            message = `Nenhuma dica para ${categoryLabel}`;
-        }
-
-        tipsList.innerHTML = `
-            <div class="empty-state">
-                <span class="material-icons">${icon}</span>
-                <p>${message}</p>
-                <p class="empty-state-hint">${hint}</p>
-            </div>
-        `;
-    }
-
 }
 
 document.addEventListener('DOMContentLoaded', () => {
     window.tipsManager = new TipsManager();
-    console.log('💡 TipsManager carregado');
+    window.tipsManager.loadTips();
 });

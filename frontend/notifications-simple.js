@@ -1,5 +1,3 @@
-console.log('🔔 NotificationsSimple carregando...');
-
 class NotificationsSimple {
     constructor() {
         this.baseURL = `${window.location.origin}/api`;
@@ -7,7 +5,7 @@ class NotificationsSimple {
         this.isSubscribed = false;
         this.hasPermission = false;
         this.lastNotificationTime = 0;
-        console.log('✅ NotificationsSimple inicializado');
+        this.isInitialized = false;
     }
 
     checkSupport() {
@@ -15,12 +13,6 @@ class NotificationsSimple {
         const isHTTPS = window.location.protocol === 'https:' ||
             window.location.hostname === 'localhost' ||
             window.location.hostname.includes('ngrok');
-
-        console.log('🔍 Suporte do navegador:', {
-            Notification: hasNotification,
-            HTTPS: isHTTPS,
-            UserAgent: navigator.userAgent
-        });
 
         return hasNotification && isHTTPS;
     }
@@ -38,19 +30,22 @@ class NotificationsSimple {
     }
 
     async setup() {
+        if (this.isInitialized) {
+            return true;
+        }
+
         if (!this.isSupported) {
-            console.log('❌ Notificações não suportadas neste navegador');
             return false;
         }
 
         try {
             this.hasPermission = this.getPermissionStatus();
-            console.log('🔐 Permissão atual:', this.hasPermission);
 
             if ('serviceWorker' in navigator) {
-                await navigator.serviceWorker.register('/sw.js');
-                console.log('✅ Service Worker registrado');
+                await navigator.serviceWorker.register('/sw-notifications.js', { scope: '/' });
             }
+
+            this.isInitialized = true;
 
             return true;
         } catch (error) {
@@ -75,13 +70,9 @@ class NotificationsSimple {
     }
 
     async testNotification() {
-        console.log('📱 Testando notificação...');
-
         const context = this.getAppContext();
-        console.log('🎯 Contexto do app:', context);
 
         if (context.isMobile && !context.isPWA) {
-            console.log('📱 Usuário no navegador mobile - mostrando prompt de PWA');
             return await this.showPWAInstallPrompt();
         }
 
@@ -168,12 +159,9 @@ Deseja tentar as notificações no navegador mesmo assim?
     }
 
     async requestPermission() {
-        console.log('🔄 Pedindo permissão...');
-
         try {
 
             const permission = await Notification.requestPermission();
-            console.log('📱 Resposta da permissão:', permission);
 
             if (permission === 'granted') {
                 this.hasPermission = true;
@@ -192,8 +180,6 @@ Deseja tentar as notificações no navegador mesmo assim?
 
     async showTestNotification() {
         try {
-            console.log('🎯 Mostrando notificação de teste...');
-
             const context = this.getAppContext();
             const options = {
                 body: '✅ Notificações estão funcionando! Você receberá alertas quando alimentos estiverem próximos do vencimento.',
@@ -209,7 +195,6 @@ Deseja tentar as notificações no navegador mesmo assim?
             const notification = new Notification('🍎 EcoMida - Teste', options);
 
             notification.onclick = () => {
-                console.log('📲 Notificação clicada');
                 window.focus();
                 notification.close();
             };
@@ -218,7 +203,6 @@ Deseja tentar as notificações no navegador mesmo assim?
                 notification.close();
             }, context.isMobile ? 4000 : 6000);
 
-            console.log('✅ Notificação de teste mostrada com sucesso');
             return true;
 
         } catch (error) {
@@ -246,30 +230,20 @@ Deseja tentar as notificações no navegador mesmo assim?
         const context = this.getAppContext();
 
         if (this.getPermissionStatus() !== 'granted') {
-            console.log('🔐 Sem permissão para notificações automáticas');
             return;
         }
 
         const now = Date.now();
         if (now - this.lastNotificationTime < 60000) {
-            console.log('⏰ Notificação muito recente, aguardando...');
             return;
         }
 
         try {
-            console.log('🔥 showAutomaticNotification - alimentos recebidos:', expiringFoods);
-
             const foodsByDays = {};
 
             expiringFoods.forEach(food => {
                 // Usar days_until_expiry do backend (já corrigido)
                 const daysUntil = food.days_until_expiry;
-
-                console.log(`🔥 ${food.name}:`, {
-                    days_until_expiry: daysUntil,
-                    expiry_message: food.expiry_message,
-                    expiry_date: food.expiry_date
-                });
 
                 if (!foodsByDays[daysUntil]) {
                     foodsByDays[daysUntil] = [];
@@ -283,8 +257,6 @@ Deseja tentar as notificações no navegador mesmo assim?
                     full_object: food
                 });
             });
-
-            console.log('🔥 foodsByDays estrutura:', JSON.stringify(foodsByDays, null, 2));
 
             let message = '';
             let title = '🍎 EcoMida';
@@ -347,8 +319,6 @@ Deseja tentar as notificações no navegador mesmo assim?
             }
 
             if (message) {
-                console.log('🔥 Mensagem final da notificação:', message);
-
                 const options = {
                     body: message,
                     icon: '/images/ecomida192.png',
@@ -364,7 +334,6 @@ Deseja tentar as notificações no navegador mesmo assim?
                 const notification = new Notification(title, options);
 
                 notification.onclick = () => {
-                    console.log('📲 Notificação de alimento clicada');
                     window.focus();
 
                     if (window.app) {
@@ -380,13 +349,6 @@ Deseja tentar as notificações no navegador mesmo assim?
                 }, autoCloseTime);
 
                 this.lastNotificationTime = now;
-                console.log('✅ Notificação automática enviada:', {
-                    title,
-                    message,
-                    foodsByDays: foodsByDays
-                });
-            } else {
-                console.log('ℹ️ Nenhuma mensagem gerada para notificação');
             }
 
         } catch (error) {
@@ -398,7 +360,6 @@ Deseja tentar as notificações no navegador mesmo assim?
         try {
             const token = window.authManager?.getToken();
             if (!token) {
-                console.log('🔐 Usuário não autenticado');
                 return [];
             }
 
@@ -411,7 +372,6 @@ Deseja tentar as notificações no navegador mesmo assim?
 
             if (response.ok) {
                 const data = await response.json();
-                console.log('📦 Alimentos próximos:', data.notifications);
                 return data.notifications;
             }
 
@@ -514,26 +474,20 @@ Deseja tentar as notificações no navegador mesmo assim?
 }
 
 function initializeNotifications() {
-    console.log('🚀 Iniciando NotificationsSimple (sincronizado)...');
-
     // Criar instância imediatamente
     window.notificationsSimple = new NotificationsSimple();
 
     // Esperar pelo evento 'app-ready' ou authManager
     const waitForInitialization = async () => {
-        console.log('⏳ Aguardando inicialização do app...');
-
         // Opção 1: Esperar pelo evento app-ready
         return new Promise((resolve) => {
             const checkApp = () => {
                 if (window.app && window.app.initialized) {
-                    console.log('✅ App detectado como inicializado');
                     resolve(true);
                     return;
                 }
 
                 if (window.authManager) {
-                    console.log('✅ AuthManager detectado');
                     resolve(true);
                     return;
                 }
@@ -548,43 +502,29 @@ function initializeNotifications() {
 
     // Inicializar quando tudo estiver pronto
     waitForInitialization().then(async () => {
-        console.log('🎯 App pronto, inicializando notificações...');
-
         const setupResult = await window.notificationsSimple.setup();
-        console.log('✅ Setup de notificações completo:', setupResult);
 
         // Verificar login e mostrar alertas
         if (window.authManager && window.authManager.isLoggedIn && window.authManager.isLoggedIn()) {
-            console.log('👤 Usuário logado, verificando alertas...');
-
             // Pequeno delay para garantir que os alimentos foram carregados
             setTimeout(() => {
                 if (window.notificationsSimple && window.notificationsSimple.showAlertsInUI) {
                     window.notificationsSimple.showAlertsInUI();
                 }
             }, 2000); // Aumentei para 2 segundos
-        } else {
-            console.log('👤 Usuário não logado, pulando alertas');
         }
-
-        console.log('✅ NotificationsSimple inicializado com sucesso!');
     });
 }
 
 // Iniciar de forma controlada
 document.addEventListener('DOMContentLoaded', () => {
-    console.log('📄 DOM carregado, agendando notificações...');
-
     // Iniciar após um pequeno delay para sincronização
     setTimeout(initializeNotifications, 500);
 });
 
 // Também escutar o evento app-ready
 window.addEventListener('app-ready', () => {
-    console.log('🎉 Evento app-ready recebido nas notificações');
-
     if (window.notificationsSimple && !window.notificationsSimple.isInitialized) {
-        console.log('🔄 Reinicializando notificações após app-ready');
         setTimeout(() => {
             if (window.notificationsSimple.setup) {
                 window.notificationsSimple.setup().then(() => {

@@ -22,15 +22,18 @@ class EcoMidaApp {
             if (!window.notificationSettings || typeof window.notificationSettings.showSettings !== 'function') {
 
                 await this.loadScript('notification-settings.js');
+            }
+
+            if (!window.notificationsSimple || typeof window.notificationsSimple.setup !== 'function') {
                 await this.loadScript('notifications-simple.js');
+            }
 
-                if (window.notificationSettings && typeof window.notificationSettings.init === 'function') {
-                    await window.notificationSettings.init();
-                }
+            if (window.notificationSettings && typeof window.notificationSettings.init === 'function') {
+                await window.notificationSettings.init();
+            }
 
-                if (window.notificationsSimple && typeof window.notificationsSimple.setup === 'function') {
-                    await window.notificationsSimple.setup();
-                }
+            if (window.notificationsSimple && typeof window.notificationsSimple.setup === 'function') {
+                await window.notificationsSimple.setup();
             }
 
             this.notificationModuleLoaded = true;
@@ -220,7 +223,9 @@ class EcoMidaApp {
             `;
         }).join('');
 
-        this.attachFoodEvents();
+        if (typeof this.attachFoodEvents === 'function') {
+            this.attachFoodEvents();
+        }
     }
 
     setupEventListeners() {
@@ -259,11 +264,6 @@ class EcoMidaApp {
 
             if (e.target.id === 'cancel-add-food') {
                 this.showScreen('main-screen');
-                return;
-            }
-
-            if (e.target.classList.contains('category-btn')) {
-                this.filterTipsByCategory(e.target);
                 return;
             }
 
@@ -389,7 +389,7 @@ class EcoMidaApp {
                             }, 2000);
                         }
                     } catch (error) {
-                        console.log('⚠️ Notificações carregadas em background com erro:', error);
+                        console.warn('Notificacoes carregadas em background com erro:', error);
                     }
                 }, 1000);
             }
@@ -761,21 +761,6 @@ class EcoMidaApp {
         `;
     }
 
-    async loadFoods() {
-        
-    }
-
-    async loadTips() {
-        
-    }
-
-    filterTipsByCategory(button) {
-        
-    }
-
-    attachFoodEvents() {
-      
-    }
 }
 
 document.addEventListener('DOMContentLoaded', () => {

@@ -1,19 +1,21 @@
 from flask import Blueprint, jsonify, request
 from flask_jwt_extended import jwt_required, get_jwt_identity
 from datetime import datetime, timedelta
+import logging
 from models.user import User, db
-from models.user import User
+from utils.auth import get_user_from_jwt_identity
 from models.food import Food
 
 notifications_bp = Blueprint('notifications_api', __name__) 
+logger = logging.getLogger(__name__)
 
 @notifications_bp.route('/expiring', methods=['GET'])
 @jwt_required()
 def get_expiring_foods():
     """Retorna alimentos próximos do vencimento do usuário logado"""
     try:
-        current_user_email = get_jwt_identity()
-        user = User.query.filter_by(email=current_user_email).first()
+        current_identity = get_jwt_identity()
+        user = get_user_from_jwt_identity(current_identity)
         
         if not user:
             return jsonify({"error": "Usuário não encontrado"}), 404
@@ -31,22 +33,9 @@ def get_expiring_foods():
         
         notifications = []
         for food in expiring_foods:
-    
             food_dict = food.to_dict()
-            
-            # DEBUG: Verificar se tem os campos
-            print(f"🔥 {food.name}: to_dict() retornou:", {
-                'tem_expiry_message': 'expiry_message' in food_dict,
-                'tem_days_until_expiry': 'days_until_expiry' in food_dict,
-                'tem_expiry_date_display': 'expiry_date_display' in food_dict,
-                'days_until_expiry_valor': food_dict.get('days_until_expiry'),
-                'expiry_message_valor': food_dict.get('expiry_message')
-            })
-            
             notifications.append(food_dict)
-        
-        print(f"🔥 Total de notificações: {len(notifications)}")
-        
+
         return jsonify({
             "notifications": notifications,
             "settings": {
@@ -57,16 +46,16 @@ def get_expiring_foods():
         }), 200
         
     except Exception as e:
-        print(f"❌ Erro em /notifications/expiring: {str(e)}")
-        return jsonify({"error": f"Erro interno: {str(e)}"}), 500
+        logger.exception("Erro ao buscar notificacoes de vencimento")
+        return jsonify({"error": "Erro interno do servidor"}), 500
 
 @notifications_bp.route('/settings', methods=['GET'])
 @jwt_required()
 def get_notification_settings():
     """Retorna as configurações de notificação do usuário"""
     try:
-        current_user_email = get_jwt_identity()
-        user = User.query.filter_by(email=current_user_email).first()
+        current_identity = get_jwt_identity()
+        user = get_user_from_jwt_identity(current_identity)
         
         if not user:
             return jsonify({"error": "Usuário não encontrado"}), 404
@@ -76,15 +65,16 @@ def get_notification_settings():
         }), 200
         
     except Exception as e:
-        return jsonify({"error": f"Erro interno: {str(e)}"}), 500
+        logger.exception("Erro ao obter configuracoes de notificacao")
+        return jsonify({"error": "Erro interno do servidor"}), 500
 
 @notifications_bp.route('/settings', methods=['PUT'])
 @jwt_required()
 def update_notification_settings():
     """Atualiza as configurações de notificação do usuário"""
     try:
-        current_user_email = get_jwt_identity()
-        user = User.query.filter_by(email=current_user_email).first()
+        current_identity = get_jwt_identity()
+        user = get_user_from_jwt_identity(current_identity)
         
         if not user:
             return jsonify({"error": "Usuário não encontrado"}), 404
@@ -109,7 +99,8 @@ def update_notification_settings():
         
     except Exception as e:
         db.session.rollback()
-        return jsonify({"error": f"Erro interno: {str(e)}"}), 500
+        logger.exception("Erro ao atualizar configuracoes de notificacao")
+        return jsonify({"error": "Erro interno do servidor"}), 500
 
 @notifications_bp.route('/test', methods=['GET'])
 @jwt_required()

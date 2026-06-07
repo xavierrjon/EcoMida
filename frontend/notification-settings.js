@@ -1,22 +1,25 @@
-console.log('⚙️ NotificationSettings carregando...');
-
 class NotificationSettings {
     constructor() {
         this.baseURL = `${window.location.origin}/api`;
         this.settings = null;
-        console.log('✅ NotificationSettings inicializado');
+        this.isInitialized = false;
     }
 
     async init() {
+        if (this.isInitialized) {
+            this.createSettingsScreen();
+            return;
+        }
+
         await this.loadSettings();
         this.renderSettingsUI();
+        this.isInitialized = true;
     }
 
     async loadSettings() {
         try {
             const token = window.authManager?.getToken();
             if (!token) {
-                console.log('🔐 Usuário não autenticado');
                 return;
             }
 
@@ -30,7 +33,6 @@ class NotificationSettings {
             if (response.ok) {
                 const data = await response.json();
                 this.settings = data.settings;
-                console.log('⚙️ Configurações carregadas:', this.settings);
             } else {
                 this.settings = this.getDefaultSettings();
             }
@@ -63,8 +65,6 @@ class NotificationSettings {
                 return false;
             }
 
-            console.log('💾 Salvando configurações:', newSettings);
-
             const response = await fetch(`${this.baseURL}/notifications/settings`, {
                 method: 'PUT',
                 headers: {
@@ -77,12 +77,9 @@ class NotificationSettings {
                 })
             });
 
-            console.log('📡 Resposta do servidor:', response.status);
-
             if (response.ok) {
                 const data = await response.json();
                 this.settings = data.settings;
-                console.log('✅ Configurações salvas:', this.settings);
                 
                 this.showSaveFeedback(true);
                 return true;
@@ -112,6 +109,10 @@ class NotificationSettings {
             settingsScreen.innerHTML = this.getSettingsHTML();
             
             const mainContent = document.querySelector('.main-content');
+            if (!mainContent) {
+                console.error('❌ main-content não encontrado para configurações');
+                return;
+            }
             mainContent.appendChild(settingsScreen);
             
             this.attachSettingsEvents();
@@ -334,19 +335,15 @@ class NotificationSettings {
     }
 
     async testNotification() {
-        console.log('🔔 Testando notificação...');
-        
         let notificationsSystem = window.notificationsSimple;
         
         if (!notificationsSystem) {
-            console.log('🔍 Procurando sistema de notificações...');
             notificationsSystem = window.notificationsSimple || 
                                 window.notifications || 
                                 window.app?.notifications;
         }
         
         if (notificationsSystem && typeof notificationsSystem.testNotification === 'function') {
-            console.log('✅ Sistema de notificações encontrado, testando...');
             await notificationsSystem.testNotification();
         } else {
             console.error('❌ Sistema de notificações não disponível:', {
@@ -365,8 +362,6 @@ class NotificationSettings {
             return;
         }
 
-        console.log('🔄 Usando notificação nativa...');
-
         if (Notification.permission === 'granted') {
           
             const notification = new Notification('🔔 EcoMida - Teste', {
@@ -380,8 +375,6 @@ class NotificationSettings {
                 window.focus();
                 notification.close();
             };
-
-            console.log('✅ Notificação nativa enviada');
 
         } else if (Notification.permission === 'default') {
           
@@ -422,45 +415,46 @@ class NotificationSettings {
         }, 5000);
     }
 
-    showSettings() {
+    async showSettings() {
+        if (!this.isInitialized || !document.getElementById('notification-settings-screen')) {
+            await this.init();
+        }
+
         this.updateSettingsForm();
-        document.getElementById('notification-settings-screen').classList.add('active');
+        const settingsScreen = document.getElementById('notification-settings-screen');
+        if (settingsScreen) {
+            settingsScreen.classList.add('active');
+        }
     }
 
     hideSettings() {
-        document.getElementById('notification-settings-screen').classList.remove('active');
+        const settingsScreen = document.getElementById('notification-settings-screen');
+        if (settingsScreen) {
+            settingsScreen.classList.remove('active');
+        }
         document.getElementById('main-screen').classList.add('active');
     }
 }
 
 function initializeNotificationSettings() {
-    console.log('⚙️ Inicializando NotificationSettings (sincronizado)...');
-    
     // Criar instância
     window.notificationSettings = new NotificationSettings();
     
     // Função para inicializar quando apropriado
     const initializeWhenReady = async () => {
-        console.log('⏳ Aguardando condições para inicializar settings...');
-        
         // Esperar por authManager
         if (!window.authManager) {
-            console.log('⏳ AuthManager não disponível, aguardando...');
             setTimeout(initializeWhenReady, 100);
             return;
         }
         
         // Só inicializar se estiver logado
         if (window.authManager.isLoggedIn && window.authManager.isLoggedIn()) {
-            console.log('👤 Usuário logado, inicializando settings...');
             try {
                 await window.notificationSettings.init();
-                console.log('✅ NotificationSettings inicializado com sucesso!');
             } catch (error) {
                 console.error('❌ Erro ao inicializar settings:', error);
             }
-        } else {
-            console.log('👤 Usuário não logado, settings não inicializados');
         }
     };
     
@@ -470,17 +464,12 @@ function initializeNotificationSettings() {
 
 // Inicializar de forma controlada
 document.addEventListener('DOMContentLoaded', () => {
-    console.log('📄 DOM carregado, agendando settings...');
     setTimeout(initializeNotificationSettings, 800); // Atraso estratégico
 });
 
 // Escutar evento app-ready
 window.addEventListener('app-ready', () => {
-    console.log('🎉 Evento app-ready recebido no settings');
-    
     if (window.notificationSettings && !window.notificationSettings.isInitialized) {
-        console.log('🔄 Tentando inicializar settings após app-ready');
-        
         setTimeout(async () => {
             if (window.authManager && window.authManager.isLoggedIn && 
                 window.authManager.isLoggedIn() && window.notificationSettings.init) {
