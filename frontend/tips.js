@@ -83,7 +83,7 @@ class TipsManager {
                 </div>
                 
                 <div class="tip-category">
-                    <span class="category-badge">${this.getCategoryLabel(tip.food_category)}</span>
+                    <span class="category-badge ${tip.food_category}">${this.getCategoryLabel(tip.food_category)}</span>
                 </div>
                 
                 <div class="tip-content">

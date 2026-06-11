@@ -180,7 +180,7 @@ class ProfileManager {
             <button class="back-btn" id="back-from-profile">
                 <span class="material-icons">arrow_back</span>
             </button>
-            <h2>Meu Perfil</h2>
+            <h2 id="title-from-profile">Meu Perfil</h2>
         </div>
 
         <div class="profile-container">
