@@ -66,10 +66,9 @@ class FoodsManager {
       return;
     }
 
+    // Corrigido: usar days_until_expiry numérico para ordenação
     if (activeTab === "active") {
-      filteredFoods.sort(
-        (a, b) => new Date(a.expiry_date) - new Date(b.expiry_date),
-      );
+      filteredFoods.sort((a, b) => a.days_until_expiry - b.days_until_expiry);
     } else {
       filteredFoods.sort(
         (a, b) => new Date(b.updated_at) - new Date(a.updated_at),
@@ -92,13 +91,20 @@ class FoodsManager {
             `
             : "";
 
+        // ========== CORREÇÃO: usar campos prontos do backend ==========
+        const expiryDateDisplay =
+          food.expiry_date_display ||
+          this.formatDateBrazilian(food.expiry_date);
+        const expiryMessageText = food.expiry_message || "";
+        // =============================================================
+
         return `
             <div class="food-card" data-food-id="${food.id}" style="animation-delay: ${index * 0.1}s">
                 <!-- CABEÇALHO -->
                 <div class="food-header">
                     <div class="food-title-section">
                         <div class="food-title">${this.escapeHtml(food.name)}</div>
-                        <div class="food-category ${food.food_type}"">${this.getCategoryLabel(food.food_type)}</div>
+                        <div class="food-category ${food.food_type}">${this.getCategoryLabel(food.food_type)}</div>
                     </div>
                     ${statusBadge}
 
@@ -111,26 +117,16 @@ class FoodsManager {
                             <span class="info-label">Validade</span>
 
                             <div class="expiry-info">
-
+                                <!-- DATA CORRETA vinda do backend -->
                                 <span class="info-value expiry-date">
-                                    ${new Date(food.expiry_date).toLocaleDateString("pt-BR")}
+                                    ${expiryDateDisplay}
                                 </span>
 
                                 ${
                                   activeTab === "active"
                                     ? `
                                             <span class="expiry-remaining ${expiryStatus}">
-                                                ${
-                                                  food.days_until_expiry < 0
-                                                    ? `Vencido há ${Math.abs(food.days_until_expiry)} dias`
-                                                    : food.days_until_expiry ===
-                                                        0
-                                                      ? "Vence hoje"
-                                                      : food.days_until_expiry ===
-                                                          1
-                                                        ? "Vence amanhã"
-                                                        : `Vence em ${food.days_until_expiry} dias`
-                                                }
+                                                ${expiryMessageText}
                                             </span>
                                         `
                                     : ""

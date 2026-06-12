@@ -105,22 +105,14 @@ class Food(db.Model):
     
     @property
     def expiry_date_display(self):
-        """Data formatada no padrão brasileiro (DD/MM/YYYY)"""
         if not self.expiry_date:
             return None
-            
-        # Garantir que é date, não datetime
         if isinstance(self.expiry_date, datetime):
-            expiry_date_obj = self.expiry_date.date()
+            d = self.expiry_date.date()
         else:
-            expiry_date_obj = self.expiry_date
+            d = self.expiry_date
+        return f"{d.day:02d}/{d.month:02d}/{d.year}"
         
-        # Formatar DD/MM/YYYY manualmente
-        day = expiry_date_obj.day
-        month = expiry_date_obj.month
-        year = expiry_date_obj.year
-        return f"{day:02d}/{month:02d}/{year}"
-    
     def to_dict(self):
         """Serialização completa com todos os campos de validade"""
         # Garantir que expiry_date é date para formatação
