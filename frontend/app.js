@@ -136,145 +136,145 @@ class EcoMidaApp {
     this.showScreen("login-screen");
   }
 
-  renderFoods(foods) {
-    const foodsList = document.getElementById("foods-list");
-    const activeTab =
-      document.querySelector(".tab-btn.active")?.getAttribute("data-tab") ||
-      "active";
+  // renderFoods(foods) {
+  //   const foodsList = document.getElementById("foods-list");
+  //   const activeTab =
+  //     document.querySelector(".tab-btn.active")?.getAttribute("data-tab") ||
+  //     "active";
 
-    if (!foods || foods.length === 0) {
-      this.showEmptyState();
-      return;
-    }
+  //   if (!foods || foods.length === 0) {
+  //     this.showEmptyState();
+  //     return;
+  //   }
 
-    let filteredFoods = foods.filter((food) => {
-      if (activeTab === "consumed") return food.status === "consumed";
-      if (activeTab === "discarded") return food.status === "discarded";
-      return food.status === "active";
-    });
+  //   let filteredFoods = foods.filter((food) => {
+  //     if (activeTab === "consumed") return food.status === "consumed";
+  //     if (activeTab === "discarded") return food.status === "discarded";
+  //     return food.status === "active";
+  //   });
 
-    if (filteredFoods.length === 0) {
-      this.showTabEmptyState(activeTab);
-      return;
-    }
+  //   if (filteredFoods.length === 0) {
+  //     this.showTabEmptyState(activeTab);
+  //     return;
+  //   }
 
-    if (activeTab === "active") {
-      filteredFoods.sort(
-        (a, b) => new Date(a.expiry_date) - new Date(b.expiry_date),
-      );
-    } else {
-      filteredFoods.sort(
-        (a, b) => new Date(b.updated_at) - new Date(a.updated_at),
-      );
-    }
+  //   if (activeTab === "active") {
+  //     filteredFoods.sort(
+  //       (a, b) => new Date(a.expiry_date) - new Date(b.expiry_date),
+  //     );
+  //   } else {
+  //     filteredFoods.sort(
+  //       (a, b) => new Date(b.updated_at) - new Date(a.updated_at),
+  //     );
+  //   }
 
-    foodsList.innerHTML = filteredFoods
-      .map((food) => {
-        const expiryStatus =
-          activeTab === "active" ? this.getExpiryStatus(food.expiry_date) : "";
-        const statusBadge =
-          activeTab !== "active"
-            ? `
-                <span class="status-badge ${food.status}">
-                    <span class="material-icons" style="font-size: 16px;">
-                        ${food.status === "consumed" ? "check_circle" : "delete_outline"}
-                    </span>
-                    ${food.status === "consumed" ? "Consumido" : "Descartado"}
-                </span>
-            `
-            : "";
+  //   foodsList.innerHTML = filteredFoods
+  //     .map((food) => {
+  //       const expiryStatus =
+  //         activeTab === "active" ? this.getExpiryStatus(food.expiry_date) : "";
+  //       const statusBadge =
+  //         activeTab !== "active"
+  //           ? `
+  //               <span class="status-badge ${food.status}">
+  //                   <span class="material-icons" style="font-size: 16px;">
+  //                       ${food.status === "consumed" ? "check_circle" : "delete_outline"}
+  //                   </span>
+  //                   ${food.status === "consumed" ? "Consumido" : "Descartado"}
+  //               </span>
+  //           `
+  //           : "";
 
-        return `
-            <div class="food-card">
-                <!-- CABEÇALHO -->
-                <div class="food-header">
-                    <div class="food-title-section">
-                        <div class="food-title">${this.escapeHtml(food.name)}</div>
-                        <div class="food-category">${this.getCategoryLabel(food.food_type)}</div>
-                    </div>
-                    ${statusBadge}
+  //       return `
+  //           <div class="food-card">
+  //               <!-- CABEÇALHO -->
+  //               <div class="food-header">
+  //                   <div class="food-title-section">
+  //                       <div class="food-title">${this.escapeHtml(food.name)}</div>
+  //                       <div class="food-category">${this.getCategoryLabel(food.food_type)}</div>
+  //                   </div>
+  //                   ${statusBadge}
 
-                    <div class="food-info-grid">
-                        <div class="info-item">
-                            <span class="info-label">Quantidade</span>
-                            <span class="info-value">${this.formatQuantityDisplay(food.quantity, food.unit)}</span>
-                        </div>
-                        <div class="info-item expiry-status ${expiryStatus}">
-                            <span class="info-label">Validade</span>
+  //                   <div class="food-info-grid">
+  //                       <div class="info-item">
+  //                           <span class="info-label">Quantidade</span>
+  //                           <span class="info-value">${this.formatQuantityDisplay(food.quantity, food.unit)}</span>
+  //                       </div>
+  //                       <div class="info-item expiry-status ${expiryStatus}">
+  //                           <span class="info-label">Validade</span>
 
-                            <div class="expiry-info">
+  //                           <div class="expiry-info">
 
-                                <span class="info-value expiry-date">
-                                    ${new Date(food.expiry_date).toLocaleDateString("pt-BR")}
-                                </span>
+  //                               <span class="info-value expiry-date">
+  //                                   ${new Date(food.expiry_date).toLocaleDateString("pt-BR")}
+  //                               </span>
 
-                                ${
-                                  activeTab === "active"
-                                    ? `
-                                            <span class="expiry-remaining ${expiryStatus}">
-                                                ${
-                                                  food.days_until_expiry < 0
-                                                    ? `Vencido há ${Math.abs(food.days_until_expiry)} dias`
-                                                    : food.days_until_expiry ===
-                                                        0
-                                                      ? "Vence hoje"
-                                                      : food.days_until_expiry ===
-                                                          1
-                                                        ? "Vence amanhã"
-                                                        : `Vence em ${food.days_until_expiry} dias`
-                                                }
-                                            </span>
-                                        `
-                                    : ""
-                                }
+  //                               ${
+  //                                 activeTab === "active"
+  //                                   ? `
+  //                                           <span class="expiry-remaining ${expiryStatus}">
+  //                                               ${
+  //                                                 food.days_until_expiry < 0
+  //                                                   ? `Vencido há ${Math.abs(food.days_until_expiry)} dias`
+  //                                                   : food.days_until_expiry ===
+  //                                                       0
+  //                                                     ? "Vence hoje"
+  //                                                     : food.days_until_expiry ===
+  //                                                         1
+  //                                                       ? "Vence amanhã"
+  //                                                       : `Vence em ${food.days_until_expiry} dias`
+  //                                               }
+  //                                           </span>
+  //                                       `
+  //                                   : ""
+  //                               }
 
-                            </div>
-                        </div>
-                    </div>
-                </div>
+  //                           </div>
+  //                       </div>
+  //                   </div>
+  //               </div>
                 
-                <!-- INFORMAÇÕES EM GRID -->
+  //               <!-- INFORMAÇÕES EM GRID -->
                 
                 
-                <!-- AÇÕES ORGANIZADAS -->
-                <div class="food-actions">
-                    ${
-                      activeTab === "active"
-                        ? `
-                        <button class="action-btn btn-consumed consume-food" data-food-id="${food.id}">
-                            <span class="material-icons" style="font-size: 18px;">check</span>
-                            <span>Consumido</span>
-                        </button>
-                        <button class="action-btn btn-discarded discard-food" data-food-id="${food.id}">
-                            <span class="material-icons" style="font-size: 18px;">close</span>
-                            <span>Descartado</span>
-                        </button>
-                    `
-                        : `
-                        <button class="action-btn btn-reactivate reactivate-food" data-food-id="${food.id}">
-                            <span class="material-icons" style="font-size: 18px;">refresh</span>
-                            <span>Reativar</span>
-                        </button>
-                        <div style="grid-column: 2 / span 2;"></div>
-                    `
-                    }
+  //               <!-- AÇÕES ORGANIZADAS -->
+  //               <div class="food-actions">
+  //                   ${
+  //                     activeTab === "active"
+  //                       ? `
+  //                       <button class="action-btn btn-consumed consume-food" data-food-id="${food.id}">
+  //                           <span class="material-icons" style="font-size: 18px;">check</span>
+  //                           <span>Consumido</span>
+  //                       </button>
+  //                       <button class="action-btn btn-discarded discard-food" data-food-id="${food.id}">
+  //                           <span class="material-icons" style="font-size: 18px;">close</span>
+  //                           <span>Descartado</span>
+  //                       </button>
+  //                   `
+  //                       : `
+  //                       <button class="action-btn btn-reactivate reactivate-food" data-food-id="${food.id}">
+  //                           <span class="material-icons" style="font-size: 18px;">refresh</span>
+  //                           <span>Reativar</span>
+  //                       </button>
+  //                       <div style="grid-column: 2 / span 2;"></div>
+  //                   `
+  //                   }
                     
-                    <button class="icon-btn edit-food" data-food-id="${food.id}" title="Editar">
-                        <span class="material-icons" style="font-size: 18px;">edit</span>
-                    </button>
-                    <button class="icon-btn btn-delete delete-food" data-food-id="${food.id}" title="Excluir">
-                        <span class="material-icons" style="font-size: 18px;">delete</span>
-                    </button>
-                </div>
-            </div>
-            `;
-      })
-      .join("");
+  //                   <button class="icon-btn edit-food" data-food-id="${food.id}" title="Editar">
+  //                       <span class="material-icons" style="font-size: 18px;">edit</span>
+  //                   </button>
+  //                   <button class="icon-btn btn-delete delete-food" data-food-id="${food.id}" title="Excluir">
+  //                       <span class="material-icons" style="font-size: 18px;">delete</span>
+  //                   </button>
+  //               </div>
+  //           </div>
+  //           `;
+  //     })
+  //     .join("");
 
-    if (typeof this.attachFoodEvents === "function") {
-      this.attachFoodEvents();
-    }
-  }
+  //   if (typeof this.attachFoodEvents === "function") {
+  //     this.attachFoodEvents();
+  //   }
+  // }
 
   setupEventListeners() {
     document.addEventListener("click", async (e) => {
