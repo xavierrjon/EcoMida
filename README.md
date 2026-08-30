@@ -1,217 +1,68 @@
-﻿# 🌱 EcoMida - Sistema de Gestão de Alimentos Inteligente
+﻿# EcoMida - Sistema de Gestão de Alimentos Inteligente 🌱
 
-Um sistema PWA (Progressive Web App) desenvolvido em Flask (backend) e PWA nativo (frontend) com foco em reduzir o desperdício alimentar através do controle inteligente de validades. Ideal para famílias que desejam organizar sua despensa, controlar prazos de validade e adotar práticas sustentáveis no consumo de alimentos.
+Um PWA (Progressive Web App) desenvolvido para reduzir o desperdício alimentar através do controle inteligente de validades. Ideal para famílias organizarem suas despensas e adotarem práticas sustentáveis no consumo diário.
 
-## ✨ Funcionalidades
+## Funcionalidades Principais
 
-### 🔐 **Sistema de Autenticação Segura**
-- Registro e login de usuários com JWT (JSON Web Tokens)
-- Criptografia de senhas com Flask-Bcrypt
-- Gestão segura de sessões
-- Logout com confirmação
+* **Gestão de Alimentos:** Cadastro categorizado (Laticínios, Frutas, Verduras, Carnes, Grãos, Bebidas, Outros), cálculo automático de vencimento e controle de status (ativo, consumido, descartado).
+* **Notificações Inteligentes:** Alertas push no navegador calculados em tempo real (sem persistência desnecessária no banco) e modo silencioso configurável.
+* **Segurança & Perfil:** Autenticação via JWT, criptografia de senhas, gestão de sessões e configurações personalizadas.
+* **Educação Sustentável:** Catálogo de dicas práticas de armazenamento embasadas em ciência, com sistema de favoritos.
 
-### 🍎 **Gerenciamento Inteligente de Alimentos**
-- Cadastro completo: nome, quantidade, validade, categoria
-- Controle de status: ativos, consumidos, descartados
-- Cálculo automático de dias até o vencimento
-- 7 categorias organizadas: Laticínios, Frutas, Verduras, Carnes, Grãos, Bebidas, Outros
+## Arquitetura e Tecnologias
 
-### 💡 **Sistema de Dicas Educativas**
-- Catálogo organizado por categorias de alimentos
-- Dicas especializadas de armazenamento
-- Sistema de favoritos para dicas importantes
-- Conteúdo educativo prático e aplicável
+O projeto segue um modelo de 4 camadas: `Frontend (PWA) → Backend (Flask) → Lógica de Negócio → Banco SQLite`.
 
-### 🔔 **Sistema de Notificações Inteligentes**
-- Alertas automáticos de alimentos próximos do vencimento
-- Configurações personalizáveis por usuário
-- Horário silencioso para não perturbar
-- Notificações push no navegador (PWA)
-- **Lógica especial:** Notificações calculadas em tempo real sem persistência no banco
+| Camada | Tecnologias Utilizadas |
+| --- | --- |
+| **Frontend** | HTML5, CSS3, JavaScript ES6+, Service Workers, LocalStorage, Material Icons |
+| **Backend** | Python 3.9+, Flask, Flask-JWT-Extended, SQLAlchemy, Flask-CORS, Flask-Bcrypt |
+| **Infraestrutura** | SQLite, Docker, Docker Compose, Nginx, Ngrok |
 
-### 👤 **Perfil do Usuário Personalizado**
-- Edição de dados pessoais
-- Alteração segura de senha
-- Configurações personalizadas de notificação
-- Histórico completo de ações
+## Como Executar o Projeto
 
-## 🧠 Arquitetura do Sistema
+### Opção 1: Docker Compose (Recomendado)
 
-### 📐 **Modelo 4 Camadas**
-```
-Frontend (PWA) → Backend (Flask) → Lógica de Negócio → Banco SQLite
+A aplicação sobe com 2 containers (`backend` e `frontend`), utilizando Nginx para servir o PWA e resolver automaticamente questões de CORS.
+
+1. Certifique-se de ter o Docker e o Docker Compose instalados.
+2. Na raiz do projeto, construa e suba os containers:
+```bash
+docker compose up -d --build
+
 ```
 
-### 🏗️ **Tecnologias Utilizadas**
 
-#### **Frontend (PWA)**
-- HTML5 (Estrutura semântica)
-- CSS3 (Estilização responsiva)
-- JavaScript ES6+ (Lógica da aplicação)
-- Service Workers (Notificações push e funcionalidades offline)
-- Material Icons (Interface visual)
-- LocalStorage (Armazenamento local)
+3. Acesse o sistema em: **http://localhost:8080**
+*(Para parar a execução, utilize `docker compose down`)*
 
-#### **Backend (Flask)**
-- Python 3.9+ (Linguagem principal)
-- Flask (Framework web minimalista)
-- Flask-JWT-Extended (Autenticação com tokens)
-- Flask-SQLAlchemy (ORM para banco de dados)
-- Flask-CORS (Controle de requisições entre domínios)
-- Flask-Bcrypt (Criptografia de senhas)
-- Flask-Migrate (Controle de migrações)
+### Opção 2: Execução Local (com Ngrok para mobile)
 
-#### **Banco de Dados & Infra**
-- SQLite (Banco relacional para desenvolvimento)
-- SQLAlchemy (ORM e gestão de modelos)
-- Ngrok (Tunneling para testes em dispositivos móveis)
-
-## 📝 Motivação
-
-O EcoMida nasceu da necessidade de combater um problema global: o desperdício alimentar. Estima-se que 1/3 de toda comida produzida no mundo é desperdiçada. Este sistema busca empoderar famílias com ferramentas práticas para:
-- Controlar prazos de validade de forma proativa
-- Aprender técnicas adequadas de armazenamento
-- Tomar decisões conscientes sobre consumo
-- Reduzir o impacto ambiental do desperdício
-
-## 🖼️ Interface
-
-A interface foi projetada com foco em **usabilidade e acessibilidade**:
-- Design responsivo que funciona em mobile, tablet e desktop
-- Experiência PWA (instalável como app nativo)
-- Navegação intuitiva e fluxos otimizados
-- Feedback visual claro para ações do usuário
-- Modo offline com Service Workers
-
-## 🚀 Tecnologias Utilizadas
-
-### **Core Stack**
-- **Frontend:** HTML5, CSS3, JavaScript ES6+
-- **Backend:** Python 3.9+, Flask
-- **Banco de Dados:** SQLite (dev), SQLAlchemy ORM
-- **Autenticação:** JWT, Flask-Bcrypt
-
-### **Recursos Avançados**
-- **PWA:** Service Workers, Manifest, Cache API
-- **Notificações:** Web Push API, Background Sync
-- **UI/UX:** Material Design, Responsive Design
-- **Dev Tools:** Git, Ngrok, Flask Debug Toolbar
-
-## ✅ Requisitos do Sistema
-
-### **Para Desenvolvimento:**
-- Python 3.9 ou superior
-- pip (gerenciador de pacotes Python)
-- Navegador moderno (Chrome 70+, Firefox 65+, Edge 79+)
-- Git (para controle de versão)
-
-## 📦 Como Rodar o EcoMida com Acesso Remoto (Ngrok)
-
-### **1. Clone o repositório:**
-
+1. **Configure o Backend:**
 ```bash
 git clone https://github.com/xavierrjon/EcoMida.git
 cd EcoMida
-```
-
-### **2. Configure o ambiente virtual:**
-
-```bash
-# Windows
 python -m venv venv
-venv\Scripts\activate
-
-# Linux/Mac
-python3 -m venv venv
-source venv/bin/activate
-```
-
-### **3. Instale as dependências:**
-
-```bash
+source venv/bin/activate  # No Windows: venv\Scripts\activate
 pip install -r backend/requirements.txt
+cd backend && python app.py
+
 ```
 
-### **4. Execute o servidor backend Flask:**
 
+2. **Inicie o Frontend:**
 ```bash
-cd backend
-python app.py
-```
-
-### **5. Execute o frontend PWA:**
-
-```bash
-# Na pasta frontend, execute:
+# Em um novo terminal, na pasta frontend:
 python -m http.server 8080
+
 ```
 
-### **5. Acesse usando Ngrok:**
 
-1. Baixe e instale o [Ngrok](https://ngrok.com/).
-
-2. No terminal, execute:
-
+3. **Exponha para acesso remoto:**
 ```bash
-ngrok http 5000
-```
-
-3. Acesse a URL pública HTTPS gerada pelo Ngrok, algo como:
+ngrok http 8080
 
 ```
-https://abcdef1234.ngrok.io
-```
 
-## 📊 Diferenciais do EcoMida
-
-### **1. Sustentabilidade como Foco**
-- Combate direto ao desperdício de alimentos
-- Conscientização ambiental integrada
-- Práticas sustentáveis incentivadas
-
-### **2. Experiência Mobile-First**
-- PWA instalável como app nativo
-- Funciona offline
-- Notificações push
-- Performance otimizada
-
-### **3. Inteligência Proativa**
-- Sistema de alertas automáticos
-- Cálculos em tempo real
-- Recomendações personalizadas
-- Histórico de aprendizado
-
-### **4. Conteúdo Educativo**
-- Dicas práticas baseadas em ciência
-- Organização por categorias
-- Sistema de favoritos
-- Atualizações periódicas
-
-## 👥 Integrantes do Grupo
-
-| Função      | Nome                | Responsabilidade          |
-|-------------|---------------------|----------------------------|
-| Dev 1       | Johnny Xavier       | FullStack                  |
-| Dev 2       | Raíssa Martins      | FullStack                  |
-| Revisor 1   | Emelly Cristina     | Revisão Backend            |
-| Revisor 2   | Nathalya Christine  | Revisão Frontend           |
-| Revisor 3   | Rhanna Karoline     | Revisão Geral              |
-
-## 🙏 Agradecimentos
-
-Agradecemos a todos que contribuíram para este projeto, especialmente:
-
-- **Nossas famílias beta testers** pelo feedback valioso
-- **Professor e orientador Walter Jonas** pelo suporte técnico
-
----
-
-<div align="center">
-
-## 🌱 **Junte-se à luta contra o desperdício alimentar!**
-
-**"Pequenas ações no dia a dia criam grandes impactos no planeta."**
-
-[⬆ Voltar ao topo](#-ecomida---sistema-de-gestão-de-alimentos-inteligente)
-
-</div>
+> **Junte-se à luta contra o desperdício alimentar!**
+> Pequenas ações no dia a dia criam grandes impactos no planeta.

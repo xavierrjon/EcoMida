@@ -5,3 +5,5 @@ Flask-JWT-Extended==4.5.3
 Flask-SQLAlchemy==3.0.5
 Flask-Migrate==4.0.4
 python-dotenv==1.0.0
+# PyJWT>=2.10 valida "sub" como string e quebra o identity int usado no login.
+PyJWT<2.10
